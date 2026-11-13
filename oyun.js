@@ -426,7 +426,7 @@ function renderList(){
     if(c.unread) totalChats++;
     const r=document.createElement('button'); r.className='crow'+(c.unread?' un':'');
     const avsrc = c.avImg || AV[c.av];
-    const line2 = c.typing ? `<p class="typing">${c.group?esc(PEOPLE[c.typing].name)+' ':''}yazıyor…</p>` : `<p>${c.lastMine?`<span class="tk">${svg('ticks')}</span>`:''}${esc(c.last)}</p>`;
+    const line2 = c.typing ? `<p class="typing">${esc(typingLabel(c,c.typing))}</p>` : `<p>${c.lastMine?`<span class="tk">${svg('ticks')}</span>`:''}${esc(c.last)}</p>`;
     r.innerHTML=`<img src="${avsrc}" alt=""><div class="cm"><div class="l1"><b>${esc(c.title)}</b><span>${c.lastTime||''}</span></div><div class="l2">${line2}${c.muted?`<span class="ic mute">${svg('mute')}</span>`:''}${c.pinned&&!c.unread?`<span class="ic pin">${svg('pin')}</span>`:''}${c.unread?`<span class="ub">${c.unread}</span>`:''}</div></div>`;
     r.onclick=()=>openChat(c.id);
     l.appendChild(r);
@@ -435,16 +435,27 @@ function renderList(){
   for(const id of ['navUn','bdWa2','bd3d']){ const e=$(id); e.textContent=totalChats; e.classList.toggle('on',totalChats>0); }
   const hb=document.querySelector('#hmGrid [data-open="wa"] .badge'); if(hb){ hb.textContent=totalChats; hb.classList.toggle('on',totalChats>0); }
 }
-function setTyping(cid, who){
-  const c=CH[cid]; c.typing=who; renderList();
-  if(S.chat===cid){ const s=$('cSub'); if(who){ s.textContent=(c.group?PEOPLE[who].name+' ':'')+'yazıyor…'; s.classList.add('typing'); } else { s.textContent=c.sub; s.classList.remove('typing'); } }
+const typingLabel=(c,who)=>(c.group?PEOPLE[who].name+' ':'')+(c.typingRec?'ses kaydediyor…':'yazıyor…');
+function setTyping(cid, who, rec=false){
+  const c=CH[cid]; c.typing=who; c.typingRec=!!(who&&rec); renderList();
+  if(S.chat===cid){ const s=$('cSub'); if(who){ s.textContent=typingLabel(c,who); s.classList.add('typing'); } else { s.textContent=c.sub; s.classList.remove('typing'); } }
 }
+/* Mesaj temposu: 1 = gerçekçi. Daha yavaş için büyüt, daha hızlı için küçült. */
+const TEMPO=1;
 async function say(cid, from, m, o={}){
   if(typeof m==='string') m={type:'text', text:m};
-  const typ = o.typing ?? (m.type==='voice' ? 2600 : Math.min(3000, 600 + (m.text||'').length*40));
-  setTyping(cid, from); await sleep(typ); setTyping(cid, null);
+  const len=(m.text||'').length;
+  let typ;
+  if(o.typing!=null) typ=o.typing*1.6;
+  else if(m.type==='voice') typ=lineDur(m.vo)*1000+1200;          // kayıt süresi kadar "ses kaydediyor…"
+  else if(m.type==='image'||m.type==='video') typ=2600;
+  else typ=Math.min(7000, 1500 + len*80);                          // uzun mesaj = uzun yazma
+  const same = CH[cid].prev===from;                                  // aynı kişi art arda yazıyorsa kısa ara
+  const gap = o.gap ?? (same ? rnd(350,900) : rnd(1200,3000));      // önceki mesajı okuyup düşünme arası
+  await sleep(gap*TEMPO);
+  setTyping(cid, from, m.type==='voice'); await sleep(typ*TEMPO); setTyping(cid, null);
   m.from=from; const el=post(cid,m);
-  await sleep(o.after ?? 500);
+  await sleep((o.after ?? 700)*TEMPO);
   return m;
 }
 function sys(cid,text,bad){ post(cid,{type:'sys',text,bad,from:'sys'}); }
@@ -525,7 +536,7 @@ function openChat(cid){
   const c=CH[cid]; S.chat=cid;
   for(const k in CH) CH[k].el.classList.toggle('on',k===cid);
   $('cName').textContent=c.title; $('cAv').src=c.avImg||AV[c.av];
-  $('cSub').textContent=c.typing?(c.group?PEOPLE[c.typing].name+' ':'')+'yazıyor…':c.sub; $('cSub').classList.toggle('typing',!!c.typing);
+  $('cSub').textContent=c.typing?typingLabel(c,c.typing):c.sub; $('cSub').classList.toggle('typing',!!c.typing);
   c.el.querySelector('.undiv')?.remove();
   if(c.unread){ const rows=[...c.el.querySelectorAll('.mrow.in, .sysm')]; const at=rows[Math.max(0,rows.length-c.unread)]; if(at){ const d=document.createElement('div'); d.className='undiv'; d.textContent=c.unread+' OKUNMAMIŞ MESAJ'; c.el.insertBefore(d,at); } }
   c.unread=0; renderList();
