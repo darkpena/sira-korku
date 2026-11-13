@@ -422,7 +422,7 @@ function setTyping(cid, who, rec=false){
   if(S.chat===cid){ const s=$('cSub'); if(who){ s.textContent=typingLabel(c,who); s.classList.add('typing'); } else { s.textContent=c.sub; s.classList.remove('typing'); } }
 }
 /* Mesaj temposu: 1 = gerçekçi. Daha yavaş için büyüt, daha hızlı için küçült. */
-const TEMPO=1;
+const TEMPO=1.45;
 async function say(cid, from, m, o={}){
   if(typeof m==='string') m={type:'text', text:m};
   const len=(m.text||'').length;
@@ -436,7 +436,7 @@ async function say(cid, from, m, o={}){
   await sleep(gap*TEMPO);
   setTyping(cid, from, m.type==='voice'); await sleep(typ*TEMPO); setTyping(cid, null);
   m.from=from; const el=post(cid,m);
-  await sleep((o.after ?? 700)*TEMPO);
+  await sleep((o.after ?? 1100)*TEMPO);
   return m;
 }
 function sys(cid,text,bad){ post(cid,{type:'sys',text,bad,from:'sys'}); }
@@ -567,11 +567,11 @@ function renderGallery(){
 }
 
 /* ---------- medya görüntüleyici / video oynatıcı ---------- */
-const VIDEOS={ emre:{src:'video/emre_kapi.mp4', rec:'03:11'} };
+const VIDEOS={ emre:{src:'video/emre_kapi.mp4'} };
 function openViewer({img,video,who,when}){
   $('vWho').textContent=who||''; $('vWhen').textContent=when||'';
   const im=$('vImg'), vv=$('vVid');
-  im.style.display=img?'block':'none'; vv.style.display=video?'block':'none'; $('vCtl').style.display=video?'flex':'none'; $('vBig').style.display='none'; $('vRec').style.display=video?'flex':'none';
+  im.style.display=img?'block':'none'; vv.style.display=video?'block':'none'; $('vCtl').style.display=video?'flex':'none'; $('vBig').style.display='none';
   if(img) im.src=img;
   show('viewer');
   if(video) startVideo(video);
@@ -582,8 +582,8 @@ function startVideo(key){
   if(vv.getAttribute('src')!==V.src) vv.src=V.src;
   vv.currentTime=0; vv.muted=false; vv.volume=1;
   const p=vv.play(); if(p&&p.catch) p.catch(()=>{ $('vBig').style.display='grid'; });
-  $('vPlay').innerHTML=svg('pause'); $('vRecT').textContent=V.rec+':00';
-  vv.ontimeupdate=()=>{ const d=vv.duration||10; $('vCur').textContent=fmtDur(vv.currentTime); $('vDur').textContent=fmtDur(d); $('vFill').style.width=(vv.currentTime/d*100)+'%'; $('vRecT').textContent=V.rec+':'+pad(Math.floor(vv.currentTime)); };
+  $('vPlay').innerHTML=svg('pause');
+  vv.ontimeupdate=()=>{ const d=vv.duration||10; $('vCur').textContent=fmtDur(vv.currentTime); $('vDur').textContent=fmtDur(d); $('vFill').style.width=(vv.currentTime/d*100)+'%'; };
   vv.onended=()=>{ $('vPlay').innerHTML=svg('play'); $('vBig').style.display='grid'; A.glitch(.4); };
   const toggle=()=>{ if(vv.paused){ vv.play(); $('vPlay').innerHTML=svg('pause'); $('vBig').style.display='none'; } else { vv.pause(); $('vPlay').innerHTML=svg('play'); $('vBig').style.display='grid'; } };
   $('vPlay').onclick=toggle; $('vBig').onclick=toggle; vv.onclick=toggle;
@@ -1155,7 +1155,7 @@ async function gameSakla(){
 
 /* ---------- oyunların yüklenmesi ---------- */
 async function gamesPhase(){
-  await sleep(1500);
+  await sleep(4000);
   A.pop(); try{ navigator.vibrate&&navigator.vibrate([150,80,150]); }catch(e){}
   toast({raw:`<div class="nt red"><span class="ntAv" style="display:grid;place-items:center;background:#c8102e;font-family:VT323;font-size:22px;color:#fff">${SIRA_NO}</span><div class="ntB"><div class="ntH"><span class="appdot">${svg('web')}</span>e-Sıra · şimdi</div><div class="ntT">3 uygulama yüklendi</div><div class="ntX">Bekleme süreniz boyunca eğlenmeniz için. Ana ekrana dönün.</div></div></div>`},{},()=>show('home'));
   const defs=[
@@ -1172,7 +1172,7 @@ async function gamesPhase(){
         await d.run(); idx++;
         const nx=defs[idx] && HOME_APPS.find(x=>x.id===defs[idx].id); if(nx) nx.locked=false;
         HOME_APPS.forEach(a=>a.isNew=false); renderHome(); show('home');
-        if(idx>=defs.length){ CAM.stream && camStop(); resolve(); }
+        if(idx>=defs.length){ CAM.stream && camStop(); setTimeout(resolve,7000*SPEED); }
       };
     });
     renderHome();
@@ -1254,10 +1254,11 @@ function history(){
   post('aile',{from:'baba',text:'Kombi yine su kaçırıyor, yarın usta gelecek',day:1,time:'12:02',ts:1440+722,...silent});
   post('aile',{from:'anne',text:'Yarın akşam hepiniz bize gelin, mantı yapıyorum 🥟',day:1,time:'12:05',ts:1440+725,...silent});
   post('aile',{from:'emre',text:'geliyorum 😋 bol yoğurtlu olsun',day:1,time:'12:06',ts:1440+726,...silent});
+  post('aile',{from:'teyze',text:'Emre\'m mantı deyince koşar 😄 Ben de börek getiririm',day:1,time:'12:08',ts:1440+728,...silent});
   post('aile',{from:'me',text:'Ben de geliyorum 🙋',day:1,time:'12:10',ts:1440+730,...silent});
   post('emre',{type:'e2e',from:'sys',day:1,time:'00:00',ts:1440,...silent});
   post('emre',{from:'emre',text:'maçı izledin mi 😂😂',day:1,time:'20:12',ts:1440+1212,...silent});
-  post('emre',{from:'me',text:'izledim kardeşim rezalet',day:1,time:'20:15',ts:1440+1215,...silent});
+  post('emre',{from:'me',text:'izledim kuzen rezalet',day:1,time:'20:15',ts:1440+1215,...silent});
   post('emre',{from:'emre',type:'image',src:IMG.mac,day:1,time:'20:16',ts:1440+1216,...silent});
   post('anne',{from:'anne',text:'Ekmek aldın mı?',day:1,time:'18:44',ts:1440+1124,...silent});
   post('anne',{from:'me',text:'Aldım anne',day:1,time:'18:50',ts:1440+1130,...silent});
@@ -1303,7 +1304,9 @@ async function day1(){
   await say('aile','emre','tamam tamam 😂 iyi geceler millet');
   await say('aile','emre','yarın helvada görüşürüz 💀');
   await say('aile','anne','EMRE!');
-  await sleep(2500);
+  await sleep(4000);
+  await say('aile','teyze','Hadi iyi geceler canlarım 🌙🌹',{gap:5000});
+  await sleep(7000);
 }
 
 async function night(){
@@ -1313,7 +1316,8 @@ async function night(){
   const sl=$('sleep'); sl.classList.add('on'); await interOut();
   $('slTxt').textContent='Uyuyorsun.';
   const calls=['03:12','03:13','03:14'];
-  $('slClock').textContent='03:11'; await sleep(2500);
+  $('slClock').textContent='03:10'; await sleep(4500);
+  $('slClock').textContent='03:11'; await sleep(3500);
   for(const t of calls){
     $('slClock').textContent=t; $('slPhone').classList.add('buzz'); A.buzz(1.2); A.ringStart(true);
     await sleep(3200); A.ringStop(); $('slPhone').classList.remove('buzz'); await sleep(1300);
@@ -1355,14 +1359,14 @@ async function day2(){
   // Emre'nin sesli mesajı dinlenene (ya da 40 sn geçene) kadar bekle
   const t0=performance.now();
   await waitFor(()=>CH.emre.el.querySelector('.vm.played') || performance.now()-t0>45000*SPEED);
-  await sleep(2500);
+  await sleep(6000);
   await say('aile','anne',{type:'voice',vo:'anne_d2'});
   await say('aile','baba',{type:'text',text:'Cenaze yarın öğlen. Hepimiz Nermin\'lerde toplanıyoruz.',truth:'Doktorlar bekleyeceğiz diyor. Hepimiz hastanedeyiz.'});
   await choose('aile',['Başımız sağ olsun… 😔','Ne oldu ona? Dün gece beni aramış']);
   await say('aile','baba',{type:'text',text:'Doktor kalp krizi dedi. 24 yaşında çocuk…',truth:'Doktor "derin uyku" dedi. Uyanabilir de, uyanmayabilir de…'});
   await sleep(1500);
   await say('aile','babaanne',{type:'voice',vo:'babaanne_d2'});
-  await sleep(4000);
+  await sleep(12000);
   // e-Sıra bildirimi
   const sira={raw:notifHTML('Sıranız değişti','Görüntülemek için dokunun.',AV.unknown,{red:true}),title:'e-Sıra',av:'unknown'};
   sira.raw=`<div class="nt red"><span class="ntAv" style="display:grid;place-items:center;background:#c8102e;font-family:VT323;font-size:22px;color:#fff">47</span><div class="ntB"><div class="ntH"><span class="appdot">${svg('web')}</span>e-Sıra · şimdi</div><div class="ntT">Sıranız değişti</div><div class="ntX">Şu an işlem gören: 12 · Görüntülemek için dokunun.</div></div></div>`;
@@ -1375,18 +1379,18 @@ async function day2(){
   await sleep(600); await vo('sys_intro').done;
   S.remainRun=true;
   await new Promise(r=>siraResolve=r);
-  await sleep(1500);
+  await sleep(5000);
   // yüz fotoğrafının sonuçları
   CH.aile.avImg=S.face; post('aile',{type:'sys',from:'sys',text:'Emre bu grubun simgesini değiştirdi',truth:'Deniz bu grubun simgesini değiştirdi'}); A.glitch(.3);
   CH.bilinmeyen.hidden=false; CH.bilinmeyen.avImg=S.face;
   PHOTOS.unshift({img:S.face,who:'Galeri',when:'Bugün '+hhmm()});
-  await sleep(2500);
+  await sleep(6000);
   await say('bilinmeyen','bilinmeyen',{type:'image',src:S.face},{typing:1500});
   await say('bilinmeyen','bilinmeyen','sıra sahibi doğrulandı');
   await say('bilinmeyen','bilinmeyen','şu an işlem gören: 13');
   const t1=performance.now();
-  await waitFor(()=>S.chat==='bilinmeyen' || performance.now()-t1>20000*SPEED, 300);
-  await sleep(3000);
+  await waitFor(()=>S.chat==='bilinmeyen' || performance.now()-t1>30000*SPEED, 300);
+  await sleep(8000);
   await gamesPhase();
 }
 

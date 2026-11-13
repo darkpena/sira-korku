@@ -12,7 +12,7 @@ Tahmini toplam: ses satırları ~1.900 kredi, efektler ~150 kredi.
 |---|---|---|
 | Annem | Sibel Malkoc | qLdPxFtPuffoxx5gieBJ |
 | Emre | Emre – Deep & Natural | euBhqSy9BY3XHNLwxF7J |
-| Nermin Teyze | Sevimino | fM0UmX0B08tG6kSsMe7F |
+| Nermin Teyze | Hurrem – Clear, Warm and Narrator (etiket: [sixty-year-old woman] [warm] [cheerful]; indirildikten sonra 1,5 yarım ton kalınlaştırıldı) | TASY7VCrU29rEMoYFTGG |
 | Babaanne | Gokce (+ [elderly voice]) | kütüphaneden "Gokce" |
 | e-Sıra sistemi / anons | İlknur Önal | xFsOR54lR471QiCvQ5re |
 | Gişe memuru | Nihat | MuOq11XzQTthwLhmGZ2V |
@@ -21,7 +21,7 @@ Tahmini toplam: ses satırları ~1.900 kredi, efektler ~150 kredi.
 
 | Dosya | Karakter | Metin | Durum |
 |---|---|---|---|
-| teyze_d1 | Teyze | [excited] Canlarım, bu testi herkes yapsın! Doğum tarihini giriyorsun, ne kadar ömrün kaldığını söylüyor, ÇOK doğru çıkıyor. [laughs] Benimki on iki yıl çıktı, ay çok sevindim! Hadi bakın, bakın. | **var** |
+| teyze_d1 | Teyze | [sixty-year-old woman] [warm] [cheerful] Canlarım, bu testi herkes yapsın! Doğum tarihini giriyorsun, ne kadar ömrün kaldığını söylüyor, ÇOK doğru çıkıyor. [laughs] Benimki on iki yıl çıktı, ay çok sevindim! Hadi bakın, bakın. | **var** |
 | emre_d1 | Emre | [laughs] Anne, bende bir gün yazıyor, bir gün! [laughs harder] Yarın cenazeme gelirsiniz artık. Helvayı bol yapın. | **var** |
 | emre_vm | Emre | [whispers] [nervous] Deniz... Deniz aç telefonu. [short pause] Kapıda biri var. Annemin sesiyle konuşuyor ama... annem içeride uyuyor. [trembling voice] Linke bir daha girdim. Sıra bendeymiş. Görevler veriyor, Deniz... [gasps] Yine çalıyor. [whispers] Sakın sen girme. Sakın— | **var** |
 | anne_d2 | Annem | [crying] Deniz... Emre'yi kaybettik yavrum. [sad] Teyzen perişan. Öğlen cenaze var. Hazırlan, seni de alalım. | **var** |
