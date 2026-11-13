@@ -21,7 +21,7 @@ Tahmini toplam: ses satırları ~1.900 kredi, efektler ~150 kredi.
 
 | Dosya | Karakter | Metin | Durum |
 |---|---|---|---|
-| teyze_d1 | Teyze | [excited] Canlarım, bu duayı herkes okusun! Okuyan ömrünü görüyormuş, ÇOK doğru çıkıyor. [laughs] Benimki on iki yıl çıktı, maşallah! Hadi bakın, bakın. | **var** |
+| teyze_d1 | Teyze | [excited] Canlarım, bu testi herkes yapsın! Doğum tarihini giriyorsun, ne kadar ömrün kaldığını söylüyor, ÇOK doğru çıkıyor. [laughs] Benimki on iki yıl çıktı, ay çok sevindim! Hadi bakın, bakın. | **var** |
 | emre_d1 | Emre | [laughs] Anne, bende bir gün yazıyor, bir gün! [laughs harder] Yarın cenazeme gelirsiniz artık. Helvayı bol yapın. | **var** |
 | emre_vm | Emre | [whispers] [nervous] Deniz... Deniz aç telefonu. [short pause] Kapıda biri var. Annemin sesiyle konuşuyor ama... annem içeride uyuyor. [trembling voice] Linke bir daha girdim. Sıra bendeymiş. Görevler veriyor, Deniz... [gasps] Yine çalıyor. [whispers] Sakın sen girme. Sakın— | **var** |
 | anne_d2 | Annem | [crying] Deniz... Emre'yi kaybettik yavrum. [sad] Teyzen perişan. Öğlen cenaze var. Hazırlan, seni de alalım. | **var** |
@@ -65,3 +65,8 @@ Tahmini toplam: ses satırları ~1.900 kredi, efektler ~150 kredi.
 
 Hepsi üretildi ve `ses/` klasöründe. Bir efekt dosyası silinirse oyun aynı sesi kodla üretir.
 Oyunda çalma sırası: 1. gün akşamı `sfx_ev` → gece `sfx_drone` → 2. gün sabahı `sfx_sabah` → e-Sıra bildirimiyle `sfx_drone` → Bekleme Salonu'nda `sfx_hum`.
+
+
+## Görseller ve video (Image & Video)
+- img/*.jpg: Seedream 5.5, 5 gerçekçi kurgusal portre (anne, baba, babaanne, emre, teyze), 320px'e küçültüldü.
+- video/emre_kapi.mp4: Gemini Omni Flash 1.2, 10 sn, gece kapı altı ışık; 540px, crf 27 + gren. Orijinal: video/emre_kapi_orijinal.mp4 (yayına konmaz).
