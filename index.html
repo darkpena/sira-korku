@@ -11,7 +11,7 @@
 <title>SIRA</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=VT323&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="oyun.css?v=6">
+<link rel="stylesheet" href="oyun.css?v=7">
 </head>
 <body>
 <div id="device">
@@ -81,7 +81,7 @@
 
     <!-- TARAYICI -->
     <section id="browser" class="screen">
-      <div class="bHead"><button class="back" data-back><span class="ic" data-i="close"></span></button><div class="bT"><b id="bTitle">Cuma Duası</b><span><span class="ic" data-i="lock"></span>e-sira.app</span></div><span class="ic" data-i="share"></span><span class="ic" data-i="more"></span></div>
+      <div class="bHead"><button class="back" data-back><span class="ic" data-i="close"></span></button><div class="bT"><b id="bTitle">Ömür Testi</b><span><span class="ic" data-i="lock"></span>e-sira.app</span></div><span class="ic" data-i="share"></span><span class="ic" data-i="more"></span></div>
       <div class="bProg"><i id="bProg"></i></div>
       <div id="bBody"></div>
     </section>
@@ -108,8 +108,15 @@
     <!-- MEDYA GÖRÜNTÜLEYİCİ -->
     <section id="viewer" class="screen">
       <div class="vHead"><button class="back" id="vBack"><span class="ic" data-i="back"></span></button><div class="vT"><b id="vWho"></b><span id="vWhen"></span></div><span class="ic" data-i="more"></span></div>
-      <div class="vStage"><img id="vImg" alt=""><canvas id="vCan" width="360" height="640"></canvas><button id="vBig"><span class="ic" data-i="play"></span></button></div>
+      <div class="vStage"><img id="vImg" alt=""><video id="vVid" playsinline preload="metadata"></video><div id="vRec"><i></i>REC <span id="vRecT">03:11:00</span></div><button id="vBig"><span class="ic" data-i="play"></span></button></div>
       <div class="vCtl" id="vCtl"><button id="vPlay"><span class="ic" data-i="pause"></span></button><span id="vCur">0:00</span><div class="vBar"><i id="vFill"></i></div><span id="vDur">0:14</span></div>
+    </section>
+
+    <!-- TELEFON OYUNLARI -->
+    <section id="game" class="screen">
+      <div class="gmHead"><b id="gmTitle">OYUN</b><span id="gmInfo"></span></div>
+      <div class="gmStage" id="gmStage"><canvas id="gmCan" width="300" height="300"></canvas><div id="gmMsg"></div></div>
+      <div class="gmCtl" id="gmCtl"></div>
     </section>
 
     <!-- ARAMA -->
@@ -164,12 +171,12 @@
 
   <div id="overlay">
     <h1>SIRA</h1>
-    <p>Aile grubuna bir dua linki düştü.<br>Herkes tıkladı. Kimse inanmadı.</p>
+    <p>Teyzem aile grubuna bir “Ömür Testi” attı.<br>Herkes tıkladı. Kimse inanmadı.</p>
     <p class="hl">🎧 Kulaklık tak. Sesi aç.</p>
     <button class="big" id="startBtn">BAŞLA</button>
     <small id="startNote">Bazı görevler kameranı kullanır. Görüntü cihazından çıkmaz.</small>
   </div>
 </div>
-<script type="module" src="oyun.js?v=6"></script>
+<script type="module" src="oyun.js?v=7"></script>
 </body>
 </html>

@@ -279,7 +279,10 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;paddin
 .vT span{font-size:12.5px;color:#aaa}
 .vStage{flex:1;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
 .vStage img{max-width:100%;max-height:100%;display:none}
-.vStage canvas{width:100%;height:100%;object-fit:contain;display:none}
+.vStage video{width:100%;height:100%;object-fit:contain;display:none;background:#000}
+#vRec{position:absolute;top:10px;left:12px;right:12px;display:none;align-items:center;gap:6px;font-family:VT323,monospace;font-size:20px;color:#fff;text-shadow:0 1px 3px #000;pointer-events:none}
+#vRec i{width:10px;height:10px;border-radius:50%;background:#ff3b30;animation:pulse 1s infinite}
+#vRecT{margin-left:auto}
 #vBig{position:absolute;width:70px;height:70px;border-radius:50%;background:rgba(0,0,0,.5);display:none;place-items:center}
 #vBig svg{width:44px;height:44px;fill:#fff}
 .vCtl{height:64px;display:flex;align-items:center;gap:12px;padding:0 16px;font-size:13px;color:#ddd;flex:none}
@@ -397,3 +400,35 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;paddin
 #overlay p.hl{color:#d0d6da}
 #overlay .big{background:var(--esira);color:#fff;padding:15px 36px;border-radius:30px;font-weight:700;font-size:16px;margin-top:12px}
 #overlay small{color:#5d666b;font-size:12px;max-width:300px}
+
+/* ---------- telefon oyunları ---------- */
+#game{background:#0d0f0c;align-items:center}
+.gmHead{width:100%;display:flex;justify-content:space-between;align-items:center;padding:14px 18px 8px;font-family:VT323,monospace;font-size:24px;letter-spacing:2px;color:#c4cfa1}
+.gmHead span{font-size:20px;color:#8a9a6b}
+.gmStage{position:relative;margin-top:6px;border-radius:14px;overflow:hidden;box-shadow:0 0 0 6px #2a2f25,0 0 0 8px #11140f;touch-action:none}
+.gmStage canvas{display:block;width:min(86vw,330px);height:auto;image-rendering:pixelated}
+.gmStage.egg{border-radius:46% 46% 40% 40%/52% 52% 38% 38%;padding:46px 34px 70px;background:radial-gradient(circle at 35% 25%,#ffb3d1,#e0457b 70%);box-shadow:0 10px 30px rgba(0,0,0,.6),inset 0 -8px 20px rgba(0,0,0,.25)}
+.gmStage.egg canvas{width:min(62vw,230px);border-radius:10px;box-shadow:inset 0 0 0 3px #6b7a4c}
+#gmMsg{position:absolute;left:0;right:0;bottom:10px;text-align:center;font-family:VT323,monospace;font-size:22px;color:#e7f0c9;text-shadow:0 0 6px #000,0 0 2px #000;pointer-events:none;padding:0 10px}
+.gmStage.egg #gmMsg{bottom:22px;color:#3a0b1b;text-shadow:none;font-size:20px}
+.gmCtl{flex:1;width:100%;display:flex;align-items:center;justify-content:center;gap:14px;padding:14px 18px 26px;flex-wrap:wrap}
+.pad{display:grid;grid-template-columns:repeat(3,62px);grid-template-rows:repeat(3,54px);gap:6px}
+.pad button{background:#232820;border-radius:12px;color:#c4cfa1;font-size:24px;box-shadow:0 3px 0 #11140f}
+.pad button:active{transform:translateY(2px);box-shadow:none}
+.pad .u{grid-column:2;grid-row:1}.pad .l{grid-column:1;grid-row:2}.pad .r{grid-column:3;grid-row:2}.pad .d{grid-column:2;grid-row:3}.pad .c{grid-column:2;grid-row:2;font-size:14px;font-family:VT323,monospace;background:#3a1d22;color:#ffb3c1}
+.gbtn{min-width:86px;padding:14px 12px;border-radius:40px;background:#e8e1c9;color:#2b2a24;font-weight:700;font-size:15px;box-shadow:0 4px 0 #9f977a}
+.gbtn:active{transform:translateY(3px);box-shadow:none}
+.gbtn:disabled{opacity:.4}
+.ic-yilan{background:#43523d;font-family:VT323,monospace;color:#c4cfa1;font-size:30px}
+.ic-besle{background:radial-gradient(circle at 35% 30%,#ffb3d1,#e0457b);font-size:28px}
+.ic-sakla{background:#1b1f2e;font-size:26px}
+.app.lock .ico{filter:grayscale(1) brightness(.5)}
+.bub .callb .ci.out{color:var(--wgreen2)}
+.bub .meta .tk.one svg{fill:rgba(233,237,239,.6)}
+.mrow.flipping .bub{animation:flipglitch .5s steps(3)}
+@keyframes flipglitch{0%{transform:translateX(-8px) skewX(8deg);opacity:.3}50%{transform:translateX(6px);opacity:.8}100%{transform:none;opacity:1}}
+.dua .dt{display:flex;gap:8px;justify-content:center;margin-top:14px}
+.dua .dt select{font-size:16px;padding:8px 6px;border-radius:10px;border:1px solid #e3d3a8;background:#fff;color:#4b3a1e}
+#overlay .shareBox{display:flex;flex-direction:column;gap:10px;align-items:center;margin-top:10px;padding:16px;border:1px solid #3a1d22;border-radius:16px;max-width:330px}
+#overlay .shareBox b{font-family:VT323,monospace;font-size:30px;color:#ff4a5d;letter-spacing:2px;font-weight:400}
+#overlay .ghostBtn{color:#8a949a;font-size:14px;padding:8px}
