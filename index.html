@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#000000">
+<title>SIRA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=VT323&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="oyun.css">
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
+</head>
+<body>
+<div id="device">
+  <div id="three"></div>
+
+  <!-- DURUM ÇUBUĞU -->
+  <div id="sb"><span id="sbTime">21:34</span><span class="sbR"><svg viewBox="0 0 24 24"><path d="M2 22h20V2z" opacity=".35"/><path d="M2 22h14V8z"/></svg><b id="sbNet">5G</b><span class="bat" id="sbBat"><i></i></span><span id="sbBatT">64%</span></span></div>
+
+  <div id="screens">
+    <!-- KİLİT EKRANI -->
+    <section id="lock" class="screen active">
+      <div class="lkTop"><div class="lkClock" id="lkClock">21:34</div><div class="lkDate" id="lkDate">12 Kasım Perşembe</div></div>
+      <div class="lkNotifs" id="lkNotifs"></div>
+      <div class="lkHint"><svg viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg><span>Kilidi açmak için dokun</span></div>
+    </section>
+
+    <!-- ANA EKRAN -->
+    <section id="home" class="screen">
+      <div class="hmWidget"><b id="hmClock">21:34</b><span id="hmDate">Perşembe, 12 Kasım</span></div>
+      <div class="hmGrid" id="hmGrid"></div>
+      <div class="hmDock">
+        <button class="app" data-open="phone"><span class="ico ic-phone"></span></button>
+        <button class="app" data-open="wa"><span class="ico ic-wa"></span><i class="badge" id="bdWa2"></i></button>
+        <button class="app" data-open="gallery"><span class="ico ic-gal"></span></button>
+        <button class="app" data-open="camera"><span class="ico ic-cam"></span></button>
+      </div>
+    </section>
+
+    <!-- SOHBET: LİSTE -->
+    <section id="wa" class="screen">
+      <div class="waTop"><h1>Sohbet</h1><span class="ic" data-i="camera"></span><span class="ic" data-i="more"></span></div>
+      <div class="waBody" id="waChats">
+        <div class="waSearch"><span class="ic" data-i="search"></span><span>Ara</span></div>
+        <div class="chips"><b class="on">Tümü</b><b>Okunmamış <i id="chipUn"></i></b><b>Favoriler</b><b>Gruplar</b></div>
+        <div class="waArch"><span class="ic" data-i="archive"></span><b>Arşivlenmiş</b><span>2</span></div>
+        <div id="clist"></div>
+        <div class="waE2E"><span class="ic" data-i="lock"></span> Kişisel mesajlarınız <u>uçtan uca şifrelidir</u></div>
+      </div>
+      <div class="waBody hidden" id="waCalls">
+        <div class="callsHead">Son aramalar</div>
+        <div id="callList"></div>
+      </div>
+      <button class="waFab" id="waFab"><span class="ic" data-i="newchat"></span></button>
+      <nav class="waNav">
+        <a data-tab="chats" class="on"><span class="pill"><span class="ic" data-i="chats"></span><i class="nb" id="navUn"></i></span>Sohbetler</a>
+        <a data-tab="updates"><span class="pill"><span class="ic" data-i="updates"></span></span>Güncellemeler</a>
+        <a data-tab="comm"><span class="pill"><span class="ic" data-i="groups"></span></span>Topluluklar</a>
+        <a data-tab="calls"><span class="pill"><span class="ic" data-i="call"></span><i class="nb" id="navCall"></i></span>Aramalar</a>
+      </nav>
+    </section>
+
+    <!-- SOHBET: KONUŞMA -->
+    <section id="chat" class="screen">
+      <div class="cHead">
+        <button class="back" data-back="wa"><span class="ic" data-i="back"></span></button>
+        <img id="cAv" alt="">
+        <div class="cT"><b id="cName">Aile</b><span id="cSub"></span></div>
+        <span class="ic" data-i="video"></span><span class="ic" data-i="call"></span><span class="ic" data-i="more"></span>
+      </div>
+      <div id="msgWrap"></div>
+      <div id="replyPanel"><div class="rpT">Yanıtını seç</div><div id="rpList"></div></div>
+      <div class="inBar">
+        <div class="field"><span class="ic" data-i="emoji"></span><span id="fieldTxt" class="ph">Mesaj</span><span class="ic" data-i="attach"></span><span class="ic" data-i="camera"></span></div>
+        <button id="sendBtn"><span class="ic" data-i="mic" id="sendIc"></span></button>
+      </div>
+    </section>
+
+    <!-- TARAYICI -->
+    <section id="browser" class="screen">
+      <div class="bHead"><button class="back" data-back><span class="ic" data-i="close"></span></button><div class="bT"><b id="bTitle">Cuma Duası</b><span><span class="ic" data-i="lock"></span>e-sira.app</span></div><span class="ic" data-i="share"></span><span class="ic" data-i="more"></span></div>
+      <div class="bProg"><i id="bProg"></i></div>
+      <div id="bBody"></div>
+    </section>
+
+    <!-- GALERİ -->
+    <section id="gallery" class="screen">
+      <div class="gHead"><button class="back" data-back><span class="ic" data-i="back"></span></button><b>Galeri</b></div>
+      <div class="gSec">Son eklenenler</div>
+      <div class="gGrid" id="gGrid"></div>
+    </section>
+
+    <!-- KAMERA UYGULAMASI -->
+    <section id="camera" class="screen">
+      <p>Kamera başlatılamadı.<br><small>Kamera şu anda başka bir uygulama tarafından kullanılıyor.</small></p>
+      <button class="back txt" data-back>Geri dön</button>
+    </section>
+
+    <!-- TELEFON UYGULAMASI -->
+    <section id="phone" class="screen">
+      <div class="gHead"><button class="back" data-back><span class="ic" data-i="back"></span></button><b>Telefon</b></div>
+      <div id="phList"></div>
+    </section>
+
+    <!-- MEDYA GÖRÜNTÜLEYİCİ -->
+    <section id="viewer" class="screen">
+      <div class="vHead"><button class="back" id="vBack"><span class="ic" data-i="back"></span></button><div class="vT"><b id="vWho"></b><span id="vWhen"></span></div><span class="ic" data-i="more"></span></div>
+      <div class="vStage"><img id="vImg" alt=""><canvas id="vCan" width="360" height="640"></canvas><button id="vBig"><span class="ic" data-i="play"></span></button></div>
+      <div class="vCtl" id="vCtl"><button id="vPlay"><span class="ic" data-i="pause"></span></button><span id="vCur">0:00</span><div class="vBar"><i id="vFill"></i></div><span id="vDur">0:14</span></div>
+    </section>
+
+    <!-- ARAMA -->
+    <section id="call" class="screen">
+      <div class="clTop"><span class="ic" data-i="lock"></span> Uçtan uca şifreli</div>
+      <div class="clName" id="clName">Annem</div>
+      <div class="clState" id="clState">Sohbet sesli arama</div>
+      <img class="clAv" id="clAv" alt="">
+      <div id="clSub"></div>
+      <div id="clChoices"></div>
+      <div class="clIn" id="clIn">
+        <div><button class="cb red" id="clRej"><span class="ic" data-i="callend"></span></button><span>Reddet</span></div>
+        <div><button class="cb green" id="clAcc"><span class="ic" data-i="call"></span></button><span>Cevapla</span></div>
+      </div>
+      <div class="clBar hidden" id="clBar">
+        <button><span class="ic" data-i="speaker"></span></button>
+        <button><span class="ic" data-i="video"></span></button>
+        <button><span class="ic" data-i="micoff"></span></button>
+        <button class="red" id="clEnd"><span class="ic" data-i="callend"></span></button>
+      </div>
+    </section>
+  </div>
+
+  <!-- 3D KONTROLLERİ -->
+  <div id="hud3d">
+    <div id="joy"><i></i></div>
+    <div id="lvl">SEVİYE 0 — BEKLEME SALONU</div>
+    <div id="sub3d"></div>
+    <button id="actBtn">GİŞEYE YAKLAŞ</button>
+    <button id="phoneBtn"><span class="ic" data-i="chats"></span><i class="badge" id="bd3d"></i></button>
+    <div id="hint3d">Sol taraf: yürü · Sağ taraf: bak<br>Klavye: WASD + fareyle sürükle</div>
+  </div>
+
+  <!-- KAMERA GÖREVİ -->
+  <div id="task">
+    <video id="tVideo" playsinline muted></video>
+    <canvas id="tScare" width="360" height="640"></canvas>
+    <div class="tShade"></div>
+    <div class="tTop"><span id="tNo">GÖREV 1/3</span><span id="tTime"></span></div>
+    <div class="tMid"><b id="tTitle"></b><span id="tText"></span><div id="tBig"></div><div id="tMeter"><i></i></div><span id="tStat"></span></div>
+    <div class="tBot" id="tBot"></div>
+    <div class="tPriv">Kamera görüntüsü yalnızca bu cihazda işlenir, hiçbir yere gönderilmez.</div>
+  </div>
+
+  <div id="toast"></div>
+  <div id="sleep"><b id="slClock">03:11</b><span id="slTxt">Uyuyorsun.</span><div id="slPhone"></div></div>
+  <div id="inter"><span id="inTop"></span><b id="inBig"></b></div>
+  <div id="bigcd"><span>SIRANIZ GELİYOR</span><b id="bigcdN">10</b></div>
+  <div id="form"><div class="fbox" id="fbox"></div></div>
+  <div id="glitch"></div>
+  <div id="white"></div>
+
+  <div id="overlay">
+    <h1>SIRA</h1>
+    <p>Aile grubuna bir dua linki düştü.<br>Herkes tıkladı. Kimse inanmadı.</p>
+    <p class="hl">🎧 Kulaklık tak. Sesi aç.</p>
+    <button class="big" id="startBtn">BAŞLA</button>
+    <small id="startNote">Bazı görevler kameranı kullanır. Görüntü cihazından çıkmaz.</small>
+  </div>
+</div>
+<script type="module" src="oyun.js"></script>
+</body>
+</html>
