@@ -265,6 +265,11 @@ function vo(id,{phone=false,pan=0,onprog}={}){
 /* =========================================================
    GÖRSELLER (canvas ile çiziliyor)
    ========================================================= */
+/* Safari büyük boyutlu emojileri canvas'a çizemiyor: emojiyi küçük çizip ölçekle büyüt */
+(()=>{ const P=CanvasRenderingContext2D.prototype, ft=P.fillText; let re; try{ re=new RegExp('\\p{Extended_Pictographic}','u'); }catch(e){ re=/[\uD83C-\uDBFF]/; }
+  P.fillText=function(t,x,y,...r){ const m=/(\d+(?:\.\d+)?)px/.exec(this.font), sz=m?+m[1]:0;
+    if(sz>32 && re.test(t)){ const k=sz/32; this.save(); this.font=this.font.replace(m[0],'32px'); this.translate(x,y); this.scale(k,k); ft.call(this,t,0,0,...r); this.restore(); }
+    else ft.call(this,t,x,y,...r); }; })();
 function cv(w,h,draw){ const c=document.createElement('canvas'); c.width=w; c.height=h; draw(c.getContext('2d'),w,h); return c; }
 function grain(g,w,h,a=.12){ const d=g.getImageData(0,0,w,h); for(let i=0;i<d.data.length;i+=4){ const n=(Math.random()-.5)*255*a; d.data[i]+=n; d.data[i+1]+=n; d.data[i+2]+=n; } g.putImageData(d,0,0); }
 function avatar(c1,c2,emoji,{size=160,fs=86}={}){ return cv(size,size,(g,w,h)=>{ const gr=g.createLinearGradient(0,0,w,h); gr.addColorStop(0,c1); gr.addColorStop(1,c2); g.fillStyle=gr; g.fillRect(0,0,w,h); g.font=`${fs}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`; g.textAlign='center'; g.textBaseline='middle'; g.fillText(emoji,w/2,h/2+6); }).toDataURL(); }
