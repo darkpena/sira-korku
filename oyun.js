@@ -7,7 +7,7 @@ const loadThree=async()=>{ if(!THREE) THREE=await import('https://cdn.jsdelivr.n
    ========================================================= */
 const $ = id => document.getElementById(id);
 const Q = new URLSearchParams(location.search);
-const SPEED = Q.has('hizli') ? 0.2 : 1;
+const SPEED = Q.has('hizli') ? (parseFloat(Q.get('hizli'))||0.2) : 1;
 const sleep = ms => new Promise(r => setTimeout(r, ms * SPEED));
 const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const rnd = (a,b) => a + Math.random()*(b-a);
@@ -39,6 +39,7 @@ const P_ = {
   share:'M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z',
   speaker:'M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z',
   micoff:'M19 11h-1.7c0 .74-.16 1.43-.43 2.05l1.23 1.23c.56-.98.9-2.09.9-3.28zm-4.02.17c0-.06.02-.11.02-.17V5c0-1.66-1.34-3-3-3S9 3.34 9 5v.18l5.98 5.99zM4.27 3 3 4.27l6.01 6.01V11c0 1.66 1.33 3 2.99 3 .22 0 .44-.03.65-.08l1.66 1.66c-.71.33-1.5.52-2.31.52-2.76 0-5.3-2.1-5.3-5.1H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c.91-.13 1.77-.45 2.54-.9L19.73 21 21 19.73 4.27 3z',
+  fwd:'M14 8V4l7 7-7 7v-4.1c-5 0-8.5 1.6-11 5.1 1-5 4-10 11-11z',
   tick1:'M9 16.17 4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z',
   ticks:'M18 7l-1.41-1.41-6.34 6.34 1.41 1.41L18 7zm4.24-1.41L11.66 16.17 7.48 12l-1.41 1.41L11.66 19l12-12-1.42-1.41zM.41 13.41 6 19l1.41-1.41L1.83 12 .41 13.41z',
   mute:'M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51A8.796 8.796 0 0 0 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3 3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06a8.99 8.99 0 0 0 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4 9.91 6.09 12 8.18V4z',
@@ -65,7 +66,8 @@ const S = {
 const pad = n => String(n).padStart(2,'0');
 const hhmm = (m=S.min) => pad(Math.floor(m/60)%24)+':'+pad(m%60);
 const nowTs = () => S.day*1440 + S.min;
-const DAYS = {1:['12 Kasım Perşembe','Perşembe, 12 Kasım'], 2:['13 Kasım Cuma','Cuma, 13 Kasım']};
+const DAYS = {1:['12 Kasım Perşembe','Perşembe, 12 Kasım'], 2:['13 Kasım Cuma','Cuma, 13 Kasım'], 3:['14 Kasım Cumartesi','Cumartesi, 14 Kasım']};
+const DATES = {0:'11 KASIM',1:'12 KASIM',2:'13 KASIM',3:'14 KASIM'};
 function setClock(h,m,day){ if(day) S.day=day; S.min=h*60+m; paintStatus(); refreshChips(); }
 function paintStatus(){
   const t = S.frozen && S.mode==='3d' ? (Math.random()<.5?'02:47':'--:--') : hhmm();
@@ -74,7 +76,8 @@ function paintStatus(){
   $('sbBatT').textContent=S.battery+'%'; const b=$('sbBat'); b.style.setProperty('--b',S.battery+'%'); b.classList.toggle('low',S.battery<=15);
 }
 setInterval(()=>{ if(!S.frozen){ S.min++; } paintStatus(); }, 20000*SPEED);
-setInterval(()=>{ if(S.battery>4){ S.battery--; paintStatus(); } }, 50000*SPEED);
+setInterval(()=>{ if(S.battery>3){ S.battery--; paintStatus(); if(S.battery===15||S.battery===5) lowBattery(); } }, 70000*SPEED);
+function lowBattery(){ if(S.mode!=='phone') return; A.tone(880,.12,{gain:.06}); A.tone(660,.18,{gain:.06,delay:.15}); toast({raw:`<div class="nt"><span class="ntAv" style="display:grid;place-items:center;background:#e8590c;font-size:20px">🔋</span><div class="ntB"><div class="ntH">Sistem · şimdi</div><div class="ntT">Pil zayıf · %${S.battery}</div><div class="ntX">${S.day>=2?'Telefonun kapanmadan önce sıranı tamamla.':'Telefonu şarja takın.'}</div></div></div>`},{}); }
 
 /* =========================================================
    SES MOTORU
@@ -284,10 +287,24 @@ const AV = {
   babaanne: 'img/babaanne.jpg',
   okul: avatar('#ffd36e','#e08a2c','📚'),
   teyze: 'img/teyze.jpg',
+  kuzen: avatar('#3b5bdb','#1a2a6c','👊'),
+  apt: avatar('#8aa1b1','#3d4f5c','🏢'),
+  saha: avatar('#2e8b57','#14532d','⚽'),
+  kargo: avatar('#ffb347','#e8590c','📦'),
+  eniste: avatar('#3d8b3d','#1d4d1d','⚽'),
+  yenge: avatar('#ff9a9e','#c2185b','🌹'),
+  dayi: cv(160,160,(g,w,h)=>{ const gr=g.createLinearGradient(0,0,0,h); gr.addColorStop(0,'#f6a35c'); gr.addColorStop(.5,'#f7d488'); gr.addColorStop(.51,'#5d7d4a'); gr.addColorStop(1,'#2f4a25'); g.fillStyle=gr; g.fillRect(0,0,w,h); g.fillStyle='#fff3c4'; g.beginPath(); g.arc(110,62,16,0,7); g.fill(); g.fillStyle='#3b5530'; g.beginPath(); g.moveTo(0,90); g.quadraticCurveTo(50,60,90,88); g.quadraticCurveTo(130,70,160,92); g.lineTo(160,160); g.lineTo(0,160); g.fill(); }).toDataURL(),
+  selin: avatar('#f8c8dc','#d980a8','💅'),
+  burak: avatar('#5ec8f2','#1e6fa8','🎮'),
+  mert: avatar('#38d9a9','#0b7285','😎'),
+  zeynep: avatar('#e5dbff','#9775fa','🌸'),
+  komsu: avatar('#ffe066','#f08c00','🌼'),
+  yonetici: avatar('#a5b4c4','#495867','🔑'),
+  kaan: avatar('#ffa8a8','#c92a2a','🏃'),
   unknown: cv(160,160,(g,w,h)=>{ g.fillStyle='#6a7175'; g.fillRect(0,0,w,h); g.fillStyle='#cfd4d6'; g.beginPath(); g.arc(80,62,30,0,7); g.fill(); g.beginPath(); g.ellipse(80,150,58,48,0,Math.PI,0); g.fill(); }).toDataURL(),
 };
 const IMG = {
-  gunaydin: cv(360,360,(g,w,h)=>{ const gr=g.createLinearGradient(0,0,w,h); gr.addColorStop(0,'#ffd1e8'); gr.addColorStop(1,'#ff8fb8'); g.fillStyle=gr; g.fillRect(0,0,w,h); g.font='60px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; g.textAlign='center'; ['🌹','🌸','🌹','🌷','🌹'].forEach((e,i)=>g.fillText(e,40+i*70,86+(i%2)*18)); ['🌷','🌹','🌸','🌹','🌸'].forEach((e,i)=>g.fillText(e,40+i*70,330-(i%2)*14)); g.fillStyle='#a1003b'; g.font='italic bold 56px Georgia'; g.fillText('Günaydın',w/2,192); g.font='italic 23px Georgia'; g.fillStyle='#6d0028'; g.fillText('Hayırlı perşembeler ✨',w/2,234); }).toDataURL(),
+  gunaydin: cv(360,360,(g,w,h)=>{ const gr=g.createLinearGradient(0,0,w,h); gr.addColorStop(0,'#ffd1e8'); gr.addColorStop(1,'#ff8fb8'); g.fillStyle=gr; g.fillRect(0,0,w,h); g.font='60px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; g.textAlign='center'; ['🌹','🌸','🌹','🌷','🌹'].forEach((e,i)=>g.fillText(e,40+i*70,86+(i%2)*18)); ['🌷','🌹','🌸','🌹','🌸'].forEach((e,i)=>g.fillText(e,40+i*70,330-(i%2)*14)); g.fillStyle='#a1003b'; g.font='italic bold 56px Georgia'; g.fillText('Günaydın',w/2,192); g.font='italic 23px Georgia'; g.fillStyle='#6d0028'; g.fillText('Güzel bir gün olsun ✨',w/2,234); }).toDataURL(),
   linkThumb: cv(500,260,(g,w,h)=>{ const gr=g.createLinearGradient(0,0,w,h); gr.addColorStop(0,'#3a0d4f'); gr.addColorStop(1,'#c2185b'); g.fillStyle=gr; g.fillRect(0,0,w,h); for(let i=0;i<40;i++){ g.fillStyle=`rgba(255,255,255,${Math.random()*.25})`; g.beginPath(); g.arc(Math.random()*w,Math.random()*h,Math.random()*3,0,7); g.fill(); } g.font='86px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; g.textAlign='center'; g.fillText('⏳',w/2-150,h/2+30); g.fillStyle='#fff'; g.font='bold 48px Roboto, sans-serif'; g.fillText('ÖMÜR TESTİ',w/2+40,h/2-6); g.font='20px Roboto, sans-serif'; g.fillStyle='#ffd6e7'; g.fillText('Doğum tarihine göre kalan ömrün',w/2+40,h/2+30); g.font='bold 18px Roboto, sans-serif'; g.fillStyle='#ffeb3b'; g.fillText('%98 DOĞRU ÇIKIYOR 😱',w/2+40,h/2+62); }).toDataURL(),
   ekmek: cv(300,300,(g,w,h)=>{ g.fillStyle='#4b2e1c'; g.fillRect(0,0,w,h); g.font='150px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; g.textAlign='center'; g.fillText('🥖',w/2,200); }).toDataURL(),
   mac: cv(300,300,(g,w,h)=>{ g.fillStyle='#1e5c2b'; g.fillRect(0,0,w,h); g.strokeStyle='rgba(255,255,255,.4)'; g.lineWidth=3; g.strokeRect(20,20,260,260); g.beginPath(); g.arc(150,150,40,0,7); g.stroke(); g.font='70px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; g.textAlign='center'; g.fillText('⚽',150,175); }).toDataURL(),
@@ -295,6 +312,9 @@ const IMG = {
   kedi: cv(300,300,(g,w,h)=>{ const gr=g.createLinearGradient(0,0,0,h); gr.addColorStop(0,'#c98f4d'); gr.addColorStop(1,'#6b4426'); g.fillStyle=gr; g.fillRect(0,0,w,h); g.font='150px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; g.textAlign='center'; g.fillText('🐈',w/2,210); }).toDataURL(),
 };
 function siraCard(no,txt,sub){ return cv(360,420,(g,w,h)=>{ g.fillStyle='#f6efe0'; g.fillRect(0,0,w,h); g.strokeStyle='#d8c08a'; g.lineWidth=6; g.strokeRect(10,10,w-20,h-20); g.fillStyle='#7a5a1c'; g.font='bold 30px Roboto, sans-serif'; g.textAlign='center'; g.fillText('⏳ ÖMÜR TESTİ',w/2,66); g.font='14px Georgia'; g.fillStyle='#9b8a68'; g.fillText('Kalan ömrünüz',w/2,130); g.fillStyle='#8b0f1f'; g.font='110px VT323, monospace'; g.fillText(txt,w/2,240); g.fillStyle='#7a5a1c'; g.font='22px Georgia'; g.fillText(sub,w/2,282); g.fillStyle='#b5a27c'; g.font='13px Georgia'; g.fillText('Sıra no: '+no+'   ·   e-sira.app',w/2,370); }).toDataURL(); }
+IMG.gunaydin2 = cv(360,360,(g,w,h)=>{ const gr=g.createLinearGradient(0,0,0,h); gr.addColorStop(0,'#fff3d6'); gr.addColorStop(1,'#f5b971'); g.fillStyle=gr; g.fillRect(0,0,w,h); g.font='120px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; g.textAlign='center'; g.fillText('☕',w/2,170); g.fillStyle='#7a3e00'; g.font='italic bold 54px Georgia'; g.fillText('Günaydın',w/2,250); g.font='italic 22px Georgia'; g.fillStyle='#8a5a22'; g.fillText('Sevdiklerimle güzel bir gün 🌼',w/2,292); }).toDataURL();
+IMG.yemek = cv(360,300,(g,w,h)=>{ g.fillStyle='#7b4a2a'; g.fillRect(0,0,w,h); for(let y=0;y<h;y+=30) for(let x=0;x<w;x+=30){ g.fillStyle=((x+y)/30)%2?'#c0392b':'#f3e5d8'; g.globalAlpha=.25; g.fillRect(x,y,30,30); } g.globalAlpha=1; g.fillStyle='#d9d4c9'; g.beginPath(); g.ellipse(w/2,h/2+10,140,100,0,0,7); g.fill(); g.font='64px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; g.textAlign='center'; ['🫑','🍅','🫑','🍅','🫑'].forEach((e,i)=>g.fillText(e,70+i*55,h/2+(i%2?-10:30))); grain(g,w,h,.08); }).toDataURL();
+IMG.oda = cv(360,480,(g,w,h)=>{ g.fillStyle='#07080a'; g.fillRect(0,0,w,h); const gr=g.createLinearGradient(0,h*.78,0,h*.82); gr.addColorStop(0,'rgba(255,190,110,0)'); gr.addColorStop(.5,'rgba(255,190,110,.35)'); gr.addColorStop(1,'rgba(255,190,110,0)'); g.fillStyle=gr; g.fillRect(w*.55,h*.78,w*.4,h*.04); g.fillStyle='#14161b'; g.fillRect(20,h*.5,w*.55,h*.3); g.fillStyle='#1d2027'; g.beginPath(); g.ellipse(w*.3,h*.55,w*.2,h*.06,0,0,7); g.fill(); g.fillStyle='#2a2d33'; g.beginPath(); g.ellipse(w*.12,h*.53,18,14,0,0,7); g.fill(); grain(g,w,h,.22); g.fillStyle='rgba(255,154,46,.85)'; g.font='22px VT323, monospace'; g.textAlign='right'; g.fillText('13.11  03:11',w-14,h-14); }).toDataURL();
 IMG.emreShot = siraCard('12','1','gün');
 IMG.myShot = siraCard(String(SIRA_NO),'9','gün');
 
@@ -304,20 +324,37 @@ IMG.emreThumb = 'video/emre_kapi.jpg';
    SOHBETLER
    ========================================================= */
 const PEOPLE = {
-  anne:{name:'Annem', color:'#f5a3c7', av:'anne'},
-  baba:{name:'Babam', color:'#7fb2ff', av:'baba'},
-  teyze:{name:'Nermin Teyze', color:'#ffb35c', av:'teyze'},
-  emre:{name:'Emre', color:'#53bdeb', av:'emre'},
-  babaanne:{name:'Babaanne', color:'#c79ef7', av:'babaanne'},
-  bilinmeyen:{name:'+90 5•• ••• •• 47', color:'#f15c6d', av:'unknown'},
-  ali:{name:'Ali', color:'#7ee0a1', av:'unknown'}, zeynep:{name:'Zeynep', color:'#ff8f8f', av:'unknown'},
+  anne:{name:'Annem', color:'#f5a3c7', av:'anne', spd:105},
+  baba:{name:'Babam', color:'#7fb2ff', av:'baba', spd:120},
+  teyze:{name:'Nermin Teyze', color:'#ffb35c', av:'teyze', spd:150},
+  emre:{name:'Emre', color:'#53bdeb', av:'emre', spd:55},
+  babaanne:{name:'Babaanne', color:'#c79ef7', av:'babaanne', spd:230},
+  eniste:{name:'Hüseyin Enişte', color:'#8fd18f', av:'eniste', spd:135},
+  yenge:{name:'Gülay Yenge', color:'#f28b82', av:'yenge', spd:125},
+  dayi:{name:'Kemal Dayı', color:'#e3c16f', av:'dayi', spd:145},
+  selin:{name:'Selin', color:'#ff8fb1', av:'selin', spd:45},
+  burak:{name:'Burak', color:'#5ec8f2', av:'burak', spd:50},
+  mert:{name:'Mert', color:'#38d9a9', av:'mert', spd:45},
+  zeynep:{name:'Zeynep', color:'#b197fc', av:'zeynep', spd:50},
+  ali:{name:'Ali', color:'#7ee0a1', av:'unknown', spd:50},
+  kaan:{name:'Kaan', color:'#ffa8a8', av:'kaan', spd:50},
+  komsu:{name:'Ayten Hanım D.6', color:'#ffd43b', av:'komsu', spd:170},
+  yonetici:{name:'Cengiz Bey Yönetici', color:'#9fd3e6', av:'yonetici', spd:140},
+  kargo:{name:'Kargo Takip', color:'#ffb347', av:'kargo', spd:30},
+  bilinmeyen:{name:'+90 5•• ••• •• 47', color:'#f15c6d', av:'unknown', spd:60},
 };
 const CH = {
-  aile:{title:'Aile 🏠', av:'aile', group:true, sub:'Annem, Babam, Babaanne, Emre, Nermin Teyze, Sen', pinned:true},
+  aile:{title:'Kocaman Ailemiz ❤️', av:'aile', group:true, sub:'Annem, Babam, Babaanne, Emre, Gülay Yenge, Hüseyin Enişte, Kemal Dayı, Nermin Teyze, Selin, Sen', pinned:true},
+  kuzen:{title:'Kuzenler 👊', av:'kuzen', group:true, sub:'Burak, Emre, Selin, Sen'},
   emre:{title:'Emre', av:'emre', sub:'son görülme dün 23:41'},
   anne:{title:'Annem', av:'anne', sub:'çevrimiçi'},
   baba:{title:'Babam', av:'baba', sub:'son görülme bugün 21:02'},
-  okul:{title:'Sınıf 12-B 📚', av:'okul', group:true, sub:'Ali, Zeynep, +28 kişi', muted:true},
+  mert:{title:'Mert', av:'mert', sub:'son görülme bugün 22:10'},
+  okul:{title:'12-B 📚', av:'okul', group:true, sub:'Ali, Kaan, Zeynep, +27 kişi', muted:true},
+  saha:{title:'Perşembe Halı Saha ⚽', av:'saha', group:true, sub:'Kaan, Mert, Ali, +8 kişi', muted:true},
+  apt:{title:'B Blok Sakinleri 🏢', av:'apt', group:true, sub:'Cengiz Bey Yönetici, Ayten Hanım D.6, +19 kişi', muted:true},
+  zeynep:{title:'Zeynep', av:'zeynep', sub:'son görülme dün 23:02'},
+  kargo:{title:'Kargo Takip', av:'kargo', sub:'İşletme hesabı'},
   bilinmeyen:{title:'+90 5•• ••• •• 47', av:'unknown', sub:'çevrimiçi', hidden:true},
   teyze:{title:'Nermin Teyze', av:'teyze', sub:'son görülme bugün 01:12', hidden:true},
   babaanne:{title:'Babaanne', av:'babaanne', sub:'son görülme dün 21:40', hidden:true},
@@ -331,10 +368,11 @@ function previewOf(m,c){
   if(m.type==='e2e') return {t:c.last||'', mine:false};
   let t = m.type==='voice' ? '🎤 Sesli mesaj' : m.type==='image' ? '📷 '+(m.cap||'Fotoğraf') : m.type==='video' ? '🎥 Video' : m.type==='call' ? '📞 Cevapsız sesli arama' : m.type==='link' ? (m.text||m.url) : (m.text||'');
   if(m.type==='sys') return {t:m.text, mine:false};
+  if(m.deleted) t='🚫 Bu mesaj silindi';
   if(c.group && m.from!=='me') t = PEOPLE[m.from].name+': '+t;
   return {t, mine:m.from==='me'};
 }
-function dayLabel(d){ return d===S.day ? 'BUGÜN' : d===S.day-1 ? 'DÜN' : '11 KASIM'; }
+function dayLabel(d){ return d===S.day ? 'BUGÜN' : d===S.day-1 ? 'DÜN' : (DATES[d]||'11 KASIM'); }
 function refreshChips(){ document.querySelectorAll('.chip[data-day]').forEach(e=>e.textContent=dayLabel(+e.dataset.day)); }
 
 function post(cid, m){
@@ -365,8 +403,10 @@ function renderMsg(c,m){
   const ticks = out ? (m.flipped||m.delivered ? `<span class="tk one">${svg('ticks')}</span>` : m.day>=2 ? `<span class="tk one">${svg('tick1')}</span>` : `<span class="tk">${svg('ticks')}</span>`) : '';
   const meta = `<span class="meta">${m.time}${ticks}</span>`;
   let cls='bub';
-  if(m.type==='text'||!m.type){
-    inner = nm + (m.quote?`<div class="q" style="--qc:${PEOPLE[m.quote.who]?.color||'#06cf9c'}"><b>${esc(m.quote.who==='me'?'Siz':PEOPLE[m.quote.who].name)}</b><span>${esc(m.quote.text)}</span></div>`:'') + `<span class="tx">${esc(m.text)}</span><span class="sp"></span>` + meta;
+  if(m.deleted){
+    inner = nm + `<span class="tx del">🚫 ${out?'Bu mesajı sildiniz':'Bu mesaj silindi'}</span><span class="sp"></span>` + meta;
+  } else if(m.type==='text'||!m.type){
+    inner = nm + (m.fwd?`<div class="fwd">${svg('fwd')}${m.fwd==='cok'?'Çok kez iletildi':'İletildi'}</div>`:'') + (m.quote?`<div class="q" style="--qc:${PEOPLE[m.quote.who]?.color||'#06cf9c'}"><b>${esc(m.quote.who==='me'?'Siz':PEOPLE[m.quote.who].name)}</b><span>${esc(m.quote.text)}</span></div>`:'') + `<span class="tx">${esc(m.text)}</span><span class="sp"></span>` + meta;
   } else if(m.type==='image'){
     cls+=' media'+(m.cap?' hascap':''); inner = (nm?`<div style="padding:2px 6px 3px">${nm}</div>`:'') + `<img src="${m.src}" alt="">` + (m.cap?`<div class="cap">${esc(m.cap)}<span class="sp"></span></div>`:'') + meta;
   } else if(m.type==='video'){
@@ -374,7 +414,7 @@ function renderMsg(c,m){
   } else if(m.type==='voice'){
     const bars=Array.from({length:32},()=>`<s style="height:${Math.round(rnd(3,24))}px"></s>`).join('');
     const avk = out ? null : PEOPLE[m.from].av;
-    inner = `<div class="vm">${avk?`<div class="vav"><img src="${AV[avk]}"><i>${svg('mic')}</i></div>`:''}<button class="vpl">${svg('play')}</button><div class="vw">${bars}<u></u></div></div><span class="vdur">${fmtDur(lineDur(m.vo))}</span>` + meta;
+    inner = `<div class="vm">${avk?`<div class="vav"><img src="${AV[avk]}"><i>${svg('mic')}</i></div>`:''}<button class="vpl">${svg('play')}</button><div class="vw">${bars}<u></u></div></div><span class="vdur">${fmtDur(m.alt?9:lineDur(m.vo))}</span>` + meta;
   } else if(m.type==='call'){
     inner = out ? `<div class="callb"><span class="ci out">${svg('outgoing')}</span><div><b>Giden sesli arama</b><small>Cevaplanmadı</small></div></div>` + meta
                : `<div class="callb"><span class="ci">${svg('missed')}</span><div><b>Cevapsız sesli arama</b><small>Geri aramak için dokunun</small></div></div>` + meta;
@@ -382,9 +422,11 @@ function renderMsg(c,m){
     inner = nm + `<div class="lp"><img src="${m.thumb}" alt=""><div><b>${esc(m.title)}</b><span>${esc(m.desc)}</span><small>${esc(m.domain)}</small></div></div><span class="tx">${m.text?esc(m.text)+'\n':''}<a>${esc(m.url)}</a></span><span class="sp"></span>` + meta;
   }
   const b=document.createElement('div'); b.className=cls; b.innerHTML=inner; row.appendChild(b);
+  if(m.deleted) return row;
   if(m.type==='image') b.querySelector('img').onclick=()=>openViewer({img:m.src, who:m.from==='me'?'Siz':PEOPLE[m.from].name, when:m.time});
   if(m.type==='video') b.querySelector('.vthumb').onclick=()=>openViewer({video:m.video, who:m.from==='me'?'Siz':PEOPLE[m.from].name, when:m.time});
   if(m.type==='voice') setupVoice(b,m);
+  if(m.type==='call') b.querySelector('.callb').onclick=()=>outgoingCall(out?c.id:m.from);
   if(m.type==='link'){ const go=()=>{ m.onTap&&m.onTap(); }; b.querySelector('.lp').onclick=go; b.querySelector('a').onclick=go; m.lp=b.querySelector('.lp'); }
   return row;
 }
@@ -395,15 +437,16 @@ function setupVoice(b,m){
   btn.onclick=()=>{
     if(h){ h.stop(); h=null; btn.innerHTML=svg('play'); return; }
     btn.innerHTML=svg('pause'); vm.classList.add('played'); m.listened=true;
-    h=vo(m.vo,{onprog:p=>{ const k=Math.round(p*bars.length); bars.forEach((s,i)=>s.classList.toggle('p',i<k)); dot.style.left=(p*100)+'%'; dur.textContent=fmtDur(lineDur(m.vo)*p); }});
+    const D=m.alt?9:lineDur(m.vo), pr=p=>{ const k=Math.round(p*bars.length); bars.forEach((s,i)=>s.classList.toggle('p',i<k)); dot.style.left=(p*100)+'%'; dur.textContent=fmtDur(D*p); };
+    h = m.alt ? recVO(9,pr) : vo(m.vo,{onprog:pr});
     if(m.onPlay) m.onPlay();
-    h.done.then(()=>{ btn.innerHTML=svg('play'); h=null; dur.textContent=fmtDur(lineDur(m.vo)); m.onDone&&m.onDone(); });
+    h.done.then(()=>{ btn.innerHTML=svg('play'); h=null; dur.textContent=fmtDur(m.alt?9:lineDur(m.vo)); m.onDone&&m.onDone(); });
   };
 }
 
 function renderList(){
   const l=$('clist'); l.innerHTML='';
-  const arr=Object.values(CH).filter(c=>!c.hidden).sort((a,b)=>(b.pinned-a.pinned)||(b.lastTs-a.lastTs));
+  const arr=Object.values(CH).filter(c=>!c.hidden && !c.archived && (chipF==='all' || (chipF==='un'&&c.unread>0) || (chipF==='fav'&&c.pinned) || (chipF==='grp'&&c.group))).sort((a,b)=>(b.pinned-a.pinned)||(b.lastTs-a.lastTs));
   let totalChats=0;
   for(const c of arr){
     if(c.unread) totalChats++;
@@ -423,22 +466,23 @@ function setTyping(cid, who, rec=false){
   const c=CH[cid]; c.typing=who; c.typingRec=!!(who&&rec); renderList();
   if(S.chat===cid){ const s=$('cSub'); if(who){ s.textContent=typingLabel(c,who); s.classList.add('typing'); } else { s.textContent=c.sub; s.classList.remove('typing'); } }
 }
-/* Mesaj temposu: 1 = gerçekçi. Daha yavaş için büyüt, daha hızlı için küçült. */
-const TEMPO=1.45;
+/* Mesaj temposu: herkes kendi hızında yazar (PEOPLE.spd = harf başına ms). Büyütürsen her şey yavaşlar. */
+const TEMPO=1;
 async function say(cid, from, m, o={}){
   if(typeof m==='string') m={type:'text', text:m};
-  const len=(m.text||'').length;
+  const len=(m.text||'').length, spd=PEOPLE[from]?.spd||90;
   let typ;
-  if(o.typing!=null) typ=o.typing*1.6;
-  else if(m.type==='voice') typ=lineDur(m.vo)*1000+1200;          // kayıt süresi kadar "ses kaydediyor…"
-  else if(m.type==='image'||m.type==='video') typ=2600;
-  else typ=Math.min(7000, 1500 + len*80);                          // uzun mesaj = uzun yazma
-  const same = CH[cid].prev===from;                                  // aynı kişi art arda yazıyorsa kısa ara
-  const gap = o.gap ?? (same ? rnd(350,900) : rnd(1200,3000));      // önceki mesajı okuyup düşünme arası
+  if(o.typing!=null) typ=o.typing;
+  else if(m.type==='voice') typ=lineDur(m.vo)*1000+1500;          // kayıt süresi kadar "ses kaydediyor…"
+  else if(m.type==='image'||m.type==='video') typ=3200;
+  else if(m.type==='link') typ=1800;
+  else typ=Math.min(11000, 1400 + len*spd);                        // yaşlılar yavaş, gençler hızlı yazar
+  const same = CH[cid].prev===from;
+  const gap = o.gap ?? (same ? rnd(700,2200) : rnd(3500,8500));    // başkasının mesajını okuyup cevap verme arası
   await sleep(gap*TEMPO);
   setTyping(cid, from, m.type==='voice'); await sleep(typ*TEMPO); setTyping(cid, null);
-  m.from=from; const el=post(cid,m);
-  await sleep((o.after ?? 1100)*TEMPO);
+  m.from=from; post(cid,m);
+  await sleep((o.after ?? 900)*TEMPO);
   return m;
 }
 function sys(cid,text,bad){ post(cid,{type:'sys',text,bad,from:'sys'}); }
@@ -454,20 +498,35 @@ function choose(cid, opts){
 function showReplies(cid){
   const c=CH[cid], p=$('replyPanel'), l=$('rpList');
   if(!c.pending){ p.classList.remove('on'); return; }
-  l.innerHTML=''; p.classList.add('on');
+  l.innerHTML=''; p.classList.add('on'); $('rpT').textContent='Yanıtını seç';
   c.pending.opts.forEach((o,i)=>{ const b=document.createElement('button'); b.textContent=o; b.onclick=()=>typeOut(cid,o,i); l.appendChild(b); });
   setTimeout(()=>wrap.scrollTop=wrap.scrollHeight,30);
 }
-async function typeOut(cid,text,i){
-  const c=CH[cid], pend=c.pending; if(!pend) return;
+/* mesaj kutusuna dokununca: bekleyen seçim yoksa o sohbete o an yazılabilecekler */
+function showFree(cid){
+  const c=CH[cid], p=$('replyPanel'), l=$('rpList');
+  if(c.pending){ showReplies(cid); return; }
+  l.innerHTML=''; p.classList.add('on');
+  const opts=(c.free||[]).filter(o=>!o.used);
+  if(!opts.length){ $('rpT').textContent='Ne yazacağını bilemiyorsun.'; setTimeout(()=>{ if(!c.pending) p.classList.remove('on'); },1800); return; }
+  $('rpT').textContent='Yaz';
+  opts.forEach(o=>{ const b=document.createElement('button'); b.textContent=o.t; b.onclick=()=>{ o.used=true; typeOut(cid,o.t,-1,o); }; l.appendChild(b); });
+}
+$('fieldTxt').parentElement.addEventListener('click',()=>{ if(S.chat && !$('sendBtn').classList.contains('go')) showFree(S.chat); });
+function kbWords(){ return S.day>=2 && Math.random()<.5 ? ['sıra','sende','uyan'] : ['Tamam','Peki','😂']; }
+async function typeOut(cid,text,i,free){
+  const c=CH[cid], pend=c.pending; if(!pend && !free) return;
   $('replyPanel').classList.remove('on');
   const f=$('fieldTxt'); f.classList.remove('ph'); f.textContent='';
-  for(const ch of [...text]){ f.textContent+=ch; A.key(); await new Promise(r=>setTimeout(r,28*SPEED)); }
+  const kb=$('kbSug'); kb.innerHTML=kbWords().map(w=>`<span>${esc(w)}</span>`).join(''); kb.classList.add('on');
+  for(const ch of [...text]){ f.textContent+=ch; A.key(); await new Promise(r=>setTimeout(r,32*SPEED)); }
   const sb=$('sendBtn'); $('sendIc').innerHTML=svg('send'); sb.classList.add('go');
   await new Promise(r=>sb.onclick=r);
-  sb.onclick=null; sb.classList.remove('go'); $('sendIc').innerHTML=svg('mic');
+  sb.onclick=null; sb.classList.remove('go'); $('sendIc').innerHTML=svg('mic'); kb.classList.remove('on');
   f.textContent='Mesaj'; f.classList.add('ph');
-  c.pending=null; A.send();
+  A.send();
+  if(free){ const m={from:'me',type:'text',text}; post(cid,m); free.on&&free.on(m); return; }
+  c.pending=null;
   post(cid,{from:'me',type:'text',text});
   pend.res(i);
 }
@@ -497,12 +556,18 @@ function toast(c, m, onTap){
 const LIGHT = new Set(['browser']);
 function show(id, push=true){
   if(push && S.screen!==id && !['call','viewer'].includes(S.screen)) S.stack.push(S.screen);
+  const prev=S.screen;
   document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('active',s.id===id));
   S.screen=id;
   $('sb').classList.toggle('dark', LIGHT.has(id));
+  if(S.camOn && id!=='camera'){ S.camOn=false; camLeave(); }
   if(id==='wa'){ renderList(); renderCalls(); }
   if(id==='gallery') renderGallery();
   if(id==='phone') renderPhone();
+  if(id==='clockApp') renderClock();
+  if(id==='settings') renderSettings();
+  if(id==='camera'){ S.camOn=true; camOpen(); }
+  if(id!=='phone') S.pickChat=false;
   if(id!=='chat'){ $('replyPanel').classList.remove('on'); }
 }
 function back(target){
@@ -528,14 +593,9 @@ function openChat(cid){
   showReplies(cid);
   requestAnimationFrame(()=>{ const d=c.el.querySelector('.undiv'); wrap.scrollTop = d ? d.offsetTop-80 : wrap.scrollHeight; });
   c.onOpen && c.onOpen();
+  if(S.revealed && c.revealPending) revealAnim(cid);
 }
 $('lock').onclick=()=>{ if(S.lockTap) S.lockTap(); };
-document.querySelectorAll('.waNav a').forEach(a=>a.onclick=()=>{
-  document.querySelectorAll('.waNav a').forEach(x=>x.classList.toggle('on',x===a));
-  const calls=a.dataset.tab==='calls';
-  $('waChats').classList.toggle('hidden',calls); $('waCalls').classList.toggle('hidden',!calls); $('waFab').classList.toggle('hidden',calls);
-  if(calls){ S.missedCalls=0; $('navCall').classList.remove('on'); }
-});
 
 /* ---------- ana ekran ---------- */
 const HOME_APPS=[
@@ -543,8 +603,8 @@ const HOME_APPS=[
   {id:'phone',label:'Telefon',cls:'ic-phone',ic:'call'},
   {id:'gallery',label:'Galeri',cls:'ic-gal',ic:'photo'},
   {id:'camera',label:'Kamera',cls:'ic-cam',ic:'camera'},
-  {id:'camera',label:'Saat',cls:'ic-clock',ic:'clock'},
-  {id:'camera',label:'Ayarlar',cls:'ic-set',ic:'settings'},
+  {id:'clockApp',label:'Saat',cls:'ic-clock',ic:'clock'},
+  {id:'settings',label:'Ayarlar',cls:'ic-set',ic:'settings'},
 ];
 function renderHome(){
   $('hmGrid').innerHTML=HOME_APPS.map(a=>`<button class="app${a.isNew?' new':''}${a.locked?' lock':''}" ${a.action?`data-act="${a.action}"`:`data-open="${a.id}"`}><span class="ico ${a.cls}">${a.txt||svg(a.ic)}</span><b>${a.label}</b>${a.badge?'<i class="badge"></i>':''}</button>`).join('');
@@ -556,9 +616,8 @@ const ACTIONS={ sira:()=>openSira() };
 
 /* ---------- aramalar listesi ---------- */
 const CALLS=[ {who:'babaanne',kind:'in',t:'Dün 19:02'}, {who:'anne',kind:'out',t:'Dün 12:40'}, {who:'baba',kind:'in',t:'10 Kasım 18:15'} ];
-function callRow(c){ const p=PEOPLE[c.who]; const ic=c.kind==='missed'?'missed':c.kind==='in'?'incoming':'outgoing'; return `<div class="clrow"><img src="${AV[p.av]}"><div class="cm"><b class="${c.kind==='missed'?'miss':''}">${esc(p.name)}${c.n>1?` (${c.n})`:''}</b><small><span class="ic ${c.kind==='missed'?'miss':'inc'}">${svg(ic)}</span>${esc(c.t)}</small></div><span class="ic">${svg('call')}</span></div>`; }
+function callRow(c){ const p=PEOPLE[c.who]; const ic=c.kind==='missed'?'missed':c.kind==='in'?'incoming':'outgoing'; return `<div class="clrow" data-call="${c.who}"><img src="${AV[p.av]}"><div class="cm"><b class="${c.kind==='missed'?'miss':''}">${esc(p.name)}${c.n>1?` (${c.n})`:''}</b><small><span class="ic ${c.kind==='missed'?'miss':'inc'}">${svg(ic)}</span>${esc(c.t)}</small></div><span class="ic">${svg('call')}</span></div>`; }
 function renderCalls(){ $('callList').innerHTML=CALLS.map(callRow).join(''); }
-function renderPhone(){ $('phList').innerHTML=CALLS.map(callRow).join(''); }
 function addCall(c){ CALLS.unshift(c); if(c.kind==='missed'){ S.missedCalls=(S.missedCalls||0)+1; const e=$('navCall'); e.textContent=S.missedCalls; e.classList.add('on'); } renderCalls(); }
 
 /* ---------- galeri ---------- */
@@ -592,6 +651,165 @@ function startVideo(key){
   if(key==='emre') S.sawVideo=true;
 }
 function stopVideo(){ const vv=$('vVid'); try{ vv.pause(); }catch(e){} }
+
+/* =========================================================
+   UYGULAMALAR: ana ekran çubuğu, saat, ayarlar, kamera, telefon, durumlar
+   ========================================================= */
+$('homeBar').onclick=()=>{
+  if(S.mode!=='phone' || ['call','game','lock'].includes(S.screen) || $('task').classList.contains('on')) return;
+  if(S.screen==='viewer') stopVideo();
+  if(S.screen==='chat') S.chat=null;
+  S.stack=[]; show('home',false);
+};
+
+/* ---------- saat ---------- */
+const ALARMS=[{t:'07:00',d:'Hafta içi',on:false},{t:'03:11',d:'Her gün',on:true,lock:true},{t:'10:30',d:'Cumartesi',on:false}];
+function renderClock(){
+  const d2=S.day>=2;
+  $('clkBody').innerHTML=`<div class="clkBig">${hhmm()}</div><div class="clkDate">${DAYS[S.day][1]}</div>
+    <div class="clkSec">Alarmlar</div>
+    ${ALARMS.map((a,i)=>`<div class="alm${a.on?' on':''}" data-a="${i}"><div><b>${a.t}</b><span>${a.d}${a.lock&&d2?' · <em>SIRA</em>':''}</span></div><button class="tgl"><i></i></button></div>`).join('')}
+    <small class="clkNote" id="clkNote"></small>`;
+  $('clkBody').querySelectorAll('.alm').forEach(r=>r.querySelector('.tgl').onclick=()=>{
+    const a=ALARMS[+r.dataset.a]; a.on=!a.on; A.key(); renderClock();
+    if(a.lock && !a.on) setTimeout(()=>{ a.on=true; A.glitch(.2); if(S.screen==='clockApp'){ renderClock(); $('clkNote').textContent='Bu alarm kapatılamaz.'; } },900);
+  });
+}
+
+/* ---------- ayarlar ---------- */
+function renderSettings(){
+  const d2=S.day>=2;
+  $('setBody').innerHTML=`<div class="setMe"><img src="${S.faceRaw||S.face||AV.unknown}" alt=""><div><b>Deniz</b><span>+90 532 ••• •• 47</span></div></div>
+    <div class="setRow"><span>🔋</span><div><b>Pil</b><small>%${S.battery} · ${S.battery<20?'Düşük güç modu önerilir':'Normal kullanım'}</small></div></div>
+    <div class="setRow"><span>⏱️</span><div><b>Ekran süresi</b><small>Bugün</small></div></div>
+    <div class="setUse"><div><i style="width:64%"></i><b>Sohbet</b><em>3 sa 41 dk</em></div><div><i style="width:16%"></i><b>Galeri</b><em>24 dk</em></div>${d2?`<div class="red"><i style="width:100%"></i><b>e-Sıra</b><em>47 sa 00 dk</em></div>`:`<div><i style="width:6%"></i><b>Tarayıcı</b><em>9 dk</em></div>`}</div>
+    <div class="setRow"><span>🌙</span><div><b>Uyku modu</b><small>23:30 – 07:00</small></div></div>
+    <div class="setRow"><span>🔔</span><div><b>Bildirimler</b><small>${d2?'e-Sıra bildirimleri kapatılamaz':'Açık'}</small></div></div>
+    <div class="setRow"><span>📱</span><div><b>Telefon hakkında</b><small>Deniz'in telefonu</small></div></div>`;
+}
+
+/* ---------- kamera ---------- */
+async function camOpen(){
+  const v=$('camVid'), msg=$('camMsg'); msg.textContent=''; $('camScare').style.opacity=0; v.style.display='none';
+  $('camLast').style.backgroundImage = PHOTOS[0] ? `url(${PHOTOS[0].thumb||PHOTOS[0].img})` : 'none';
+  if(S.camMode==='nocam'){ msg.textContent='Kameraya izin vermedin.'; return; }
+  msg.textContent='Kamera açılıyor…';
+  const ok = CAM.stream ? true : await camStart();
+  if(S.screen!=='camera') return;
+  if(!ok){ msg.textContent='Kamera başlatılamadı.'; if(!S.camMode) S.camMode='nocam'; return; }
+  if(!S.camMode){ S.camMode='cam'; loadFace(); }
+  msg.textContent=''; v.srcObject=CAM.stream; v.style.display='block'; try{ await v.play(); }catch(e){}
+  if(S.day>=2 && !S.camScared){ S.camScared=true; setTimeout(()=>{ if(S.screen==='camera') camGhost(.32,260); },5200); }
+}
+function drawFigure(g,w,h,x,y,a=1,s=1){
+  g.save(); g.globalAlpha=a;
+  const gr=g.createRadialGradient(x,y,4,x,y,120*s); gr.addColorStop(0,'rgba(0,0,0,.9)'); gr.addColorStop(1,'rgba(0,0,0,0)'); g.fillStyle=gr; g.fillRect(0,0,w,h);
+  g.fillStyle='rgba(8,8,10,.96)'; g.beginPath(); g.ellipse(x,y,34*s,46*s,0,0,7); g.fill();
+  g.beginPath(); g.moveTo(x-70*s,h); g.quadraticCurveTo(x-60*s,y+60*s,x,y+40*s); g.quadraticCurveTo(x+60*s,y+60*s,x+70*s,h); g.fill();
+  g.fillStyle='#d9d4c8'; g.beginPath(); g.ellipse(x-12*s,y-4*s,4*s,6*s,0,0,7); g.ellipse(x+12*s,y-4*s,4*s,6*s,0,0,7); g.fill();
+  g.restore();
+}
+function camGhost(op,ms){ const c=$('camScare'), g=c.getContext('2d'); g.clearRect(0,0,c.width,c.height); drawFigure(g,c.width,c.height,c.width*.78,c.height*.38,1,1); c.style.transition='none'; c.style.opacity=op; A.noise(.3,{type:'lowpass',f:300,gain:.08}); setTimeout(()=>{ c.style.transition='opacity .4s'; c.style.opacity=0; },ms); }
+$('camShot').onclick=()=>{
+  const v=$('camVid'); if(!v.videoWidth){ A.key(); return; }
+  A.shutter(); $('white').style.transition='none'; $('white').style.background='#fff'; $('white').style.opacity=.85; setTimeout(()=>{ $('white').style.transition='opacity .4s'; $('white').style.opacity=0; },60);
+  const w=360, h=Math.round(360*v.videoHeight/v.videoWidth)||480;
+  const c=cv(w,h,(g)=>{ g.translate(w,0); g.scale(-1,1); g.drawImage(v,0,0,w,h); g.setTransform(1,0,0,1,0,0); if(S.day>=2) drawFigure(g,w,h,w*.8,h*.36,.55,.8); });
+  const img=c.toDataURL('image/jpeg',.85); PHOTOS.unshift({img,who:'Siz',when:'Bugün '+hhmm()});
+  $('camLast').style.backgroundImage=`url(${img})`;
+};
+$('camLast').onclick=()=>{ if(PHOTOS[0]) openViewer({img:PHOTOS[0].video?null:PHOTOS[0].img, video:PHOTOS[0].video, who:PHOTOS[0].who||'Galeri', when:PHOTOS[0].when}); };
+function camLeave(){ const v=$('camVid'); try{ v.pause(); }catch(e){} v.srcObject=null; if(!$('task').classList.contains('on') && S.screen!=='game') camStop(); }
+
+/* ---------- telefon uygulaması ve aramalar ---------- */
+let phTab='son';
+document.querySelectorAll('.phTabs a').forEach(a=>a.onclick=()=>{ phTab=a.dataset.ph; document.querySelectorAll('.phTabs a').forEach(x=>x.classList.toggle('on',x===a)); renderPhone(); });
+const CONTACTS=['anne','baba','babaanne','emre','teyze','eniste','yenge','dayi','selin','burak','mert','zeynep'];
+function renderPhone(){
+  $('phList').innerHTML = phTab==='kisi'
+    ? CONTACTS.map(k=>`<div class="clrow" data-call="${k}"><img src="${AV[PEOPLE[k].av]}"><div class="cm"><b>${esc(PEOPLE[k].name)}</b><small>${S.pickChat?'Sohbet başlat':'Mobil'}</small></div><span class="ic">${svg(S.pickChat?'chats':'call')}</span></div>`).join('')
+    : CALLS.map(callRow).join('');
+}
+document.addEventListener('click',e=>{
+  const r=e.target.closest('[data-call]'); if(!r) return;
+  const k=r.dataset.call;
+  if(S.pickChat && S.screen==='phone'){ S.pickChat=false; if(CH[k]){ CH[k].hidden=false; openChat(k); } else { if(!CH[k]) newChat(k); openChat(k); } return; }
+  outgoingCall(k);
+});
+function newChat(k){ const p=PEOPLE[k]; const c=CH[k]={title:p.name, av:p.av, sub:'çevrimiçi değil'}; c.id=k; c.el=document.createElement('div'); c.el.className='msgs'; wrap.appendChild(c.el); c.unread=0; c.lastTs=0; c.last=''; c.prev=null; c.lastDay=null; c.typing=null; c.pending=null; c.list=[]; }
+$('waFab').onclick=()=>{ S.pickChat=true; phTab='kisi'; document.querySelectorAll('.phTabs a').forEach(x=>x.classList.toggle('on',x.dataset.ph==='kisi')); show('phone'); };
+document.querySelectorAll('.cHead .ic[data-i="call"], .cHead .ic[data-i="video"]').forEach(b=>b.onclick=()=>{ const c=CH[S.chat]; if(!c||c.group) { A.key(); return; } outgoingCall(S.chat); });
+let outCall=null;
+async function outgoingCall(who){
+  if(outCall || callRes || S.screen==='call' || !PEOPLE[who]) return;
+  const p=PEOPLE[who], oc=outCall={who,ended:false};
+  $('clName').textContent=p.name; $('clAv').src=AV[p.av]; $('clAv').classList.remove('ring');
+  $('clState').textContent='Aranıyor…'; $('clSub').textContent=''; $('clSub').classList.remove('wrong'); $('clChoices').innerHTML='';
+  $('clIn').classList.add('hidden'); $('clBar').classList.remove('hidden');
+  show('call');
+  $('clEnd').onclick=()=>{ oc.ended=true; };
+  const wait=async ms=>{ const t0=performance.now(); while(performance.now()-t0<ms){ if(oc.ended) return false; await new Promise(r=>setTimeout(r,100)); } return true; };
+  const rb=()=>A.tone(425,1,{gain:.045}); rb(); const ringT=setInterval(rb,3000);
+  let res='noans';
+  if(who==='bilinmeyen'){ await wait(1600); res='invalid'; }
+  else if(who==='emre' && S.day>=2 && !S.emreAnswered){ if(await wait(8000)) res='emre'; }
+  else if(await wait(15000)) res='noans';
+  clearInterval(ringT);
+  if(!oc.ended){
+    if(res==='invalid'){ $('clState').textContent='Bu numara kullanılmamaktadır.'; A.hangup(); await wait(2600); }
+    else if(res==='emre'){
+      S.emreAnswered=true; callSec=0; const up=()=>$('clState').textContent=pad(Math.floor(callSec/60))+':'+pad(callSec%60); up(); callTimer=setInterval(()=>{ callSec++; up(); },1000); A.lineOn();
+      const br=setInterval(()=>A.noise(1.2,{type:'lowpass',f:500,gain:.05,a:.5}),2600);
+      await wait(4500); $('clSub').textContent='…'; SFX.whispers(0,3);
+      if(await wait(3500)){ $('clSub').textContent='“'+LINES.emre_whisper.t+'”'; $('clSub').classList.add('wrong'); const h=vo('emre_whisper',{phone:true}); await Promise.race([h.done, (async()=>{ while(!oc.ended) await new Promise(r=>setTimeout(r,100)); })()]); h.stop(); }
+      clearInterval(br); clearInterval(callTimer); A.lineOff(); A.hangup(); $('clState').textContent='Arama sona erdi'; await wait(1600);
+    } else { $('clState').textContent = S.day>=2 && ['anne','baba','teyze','eniste'].includes(who) ? 'Şu anda ulaşılamıyor' : 'Cevap yok'; A.hangup(); await wait(1900); }
+  } else A.hangup();
+  clearInterval(callTimer); A.lineOff();
+  addCall({who,kind:'out',t:'Bugün '+hhmm()});
+  $('clEnd').onclick=()=>A.glitch(.1);
+  outCall=null; if(S.screen==='call') back();
+}
+
+/* ---------- Sohbet sekmeleri, filtreler, arşiv, durumlar ---------- */
+let chipF='all';
+document.querySelectorAll('.chips b').forEach((b,i)=>b.onclick=()=>{ chipF=['all','un','fav','grp'][i]; document.querySelectorAll('.chips b').forEach(x=>x.classList.toggle('on',x===b)); renderList(); });
+$('waArch').onclick=()=>{ const l=$('archList'); l.classList.toggle('hidden'); if(!l.classList.contains('hidden')) renderArch(); };
+function renderArch(){ const l=$('archList'); l.innerHTML=''; Object.values(CH).filter(c=>c.archived).forEach(c=>{ const r=document.createElement('button'); r.className='crow'; r.innerHTML=`<img src="${c.avImg||AV[c.av]}" alt=""><div class="cm"><div class="l1"><b>${esc(c.title)}</b><span>${c.lastTime||''}</span></div><div class="l2"><p>${esc(c.last)}</p></div></div>`; r.onclick=()=>openChat(c.id); l.appendChild(r); }); }
+document.querySelectorAll('.waNav a').forEach(a=>a.onclick=()=>{
+  document.querySelectorAll('.waNav a').forEach(x=>x.classList.toggle('on',x===a));
+  const t=a.dataset.tab;
+  $('waChats').classList.toggle('hidden',t!=='chats'); $('waCalls').classList.toggle('hidden',t!=='calls'); $('waUpd').classList.toggle('hidden',t!=='updates'); $('waComm').classList.toggle('hidden',t!=='comm');
+  $('waFab').classList.toggle('hidden',t!=='chats');
+  $('waTitle').textContent={chats:'Sohbet',updates:'Güncellemeler',comm:'Topluluklar',calls:'Aramalar'}[t];
+  if(t==='calls'){ S.missedCalls=0; $('navCall').classList.remove('on'); renderCalls(); }
+  if(t==='updates') renderUpd();
+});
+IMG.memleket = cv(360,640,(g,w,h)=>{ const gr=g.createLinearGradient(0,0,0,h); gr.addColorStop(0,'#f7b267'); gr.addColorStop(.45,'#f4845f'); gr.addColorStop(.46,'#4f772d'); gr.addColorStop(1,'#31572c'); g.fillStyle=gr; g.fillRect(0,0,w,h); g.fillStyle='rgba(255,240,200,.9)'; g.beginPath(); g.arc(250,200,40,0,7); g.fill(); g.fillStyle='#3a5a2a'; g.beginPath(); g.moveTo(0,330); g.quadraticCurveTo(120,250,220,320); g.quadraticCurveTo(300,280,360,320); g.lineTo(360,640); g.lineTo(0,640); g.fill(); grain(g,w,h,.07); }).toDataURL();
+IMG.selinSt = cv(360,640,(g,w,h)=>{ const gr=g.createLinearGradient(0,0,w,h); gr.addColorStop(0,'#fbc2eb'); gr.addColorStop(1,'#a6c1ee'); g.fillStyle=gr; g.fillRect(0,0,w,h); g.font='120px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; g.textAlign='center'; g.fillText('☕',w/2,300); g.font='60px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; g.fillText('📚💅',w/2,400); }).toDataURL();
+const STATUS=[
+  {who:'teyze', img:IMG.gunaydin, cap:'Günaydın canlarım 🌹', t:'Bugün 07:31'},
+  {who:'selin', img:IMG.selinSt, cap:'perşembe modu', t:'Bugün 16:40'},
+  {who:'dayi', img:IMG.memleket, cap:'Memleket 🍂', t:'Dün 18:20'},
+];
+let MY_STATUS=null;
+function renderUpd(){
+  const l=$('waUpd'), myAv=S.faceRaw||S.face||AV.unknown;
+  l.innerHTML=`<div class="stSecT">Durum</div>
+    <button class="stRow" id="stMine"><span class="stRing ${MY_STATUS?'':'none'}"><img src="${myAv}" alt=""></span><div><b>Durumum</b><small>${MY_STATUS?MY_STATUS.t:'Durum güncellemesi eklemek için dokunun'}</small></div></button>
+    <div class="stSec">Son güncellemeler</div>
+    ${STATUS.map((st,i)=>`<button class="stRow" data-st="${i}"><span class="stRing${st.seen?' seen':''}"><img src="${AV[PEOPLE[st.who].av]}" alt=""></span><div><b>${esc(PEOPLE[st.who].name)}</b><small>${esc(st.t)}</small></div></button>`).join('')}`;
+  $('stMine').onclick=()=>{ if(MY_STATUS) openStatus(MY_STATUS,'Durumum',myAv); else A.key(); };
+  l.querySelectorAll('[data-st]').forEach(b=>b.onclick=()=>{ const st=STATUS[+b.dataset.st]; st.seen=true; openStatus(st,PEOPLE[st.who].name,AV[PEOPLE[st.who].av]); if(st.onView) st.onView(); });
+}
+let stT=null;
+function openStatus(st,name,av){
+  $('stWho').textContent=name; $('stWhen').textContent=st.t; $('stAv').src=av; $('stImg').src=st.img; $('stCap').textContent=st.cap||'';
+  const f=$('stFill'); f.style.transition='none'; f.style.width='0'; show('status');
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{ f.style.transition='width 5s linear'; f.style.width='100%'; }));
+  clearTimeout(stT); stT=setTimeout(()=>{ if(S.screen==='status') back(); },5100);
+}
+$('stBack').onclick=()=>{ clearTimeout(stT); back(); };
 
 /* =========================================================
    ARAMA EKRANI
@@ -844,9 +1062,13 @@ async function taskFace(mode){
   if(FL){ while(performance.now()-t0<12000){ await new Promise(r=>setTimeout(r,120)); const r=detect(); if(r?.faceLandmarks?.length){ break; } } }
   for(let k=3;k>0;k--){ $('tBig').textContent=k; A.tone(880,.08,{gain:.08}); await sleep(800); if(FL) detect(); }
   $('tBig').textContent=''; A.shutter(); $('white').style.transition='none'; $('white').style.opacity=.9; setTimeout(()=>{ $('white').style.transition='opacity .5s'; $('white').style.opacity=0; },60);
-  S.face=processFace();
+  S.faceRaw=captureRaw(); S.face=processFace();
   $('tStat').textContent='Teşekkürler.'; await sleep(1500);
   return true;
+}
+function captureRaw(){
+  const v=$('tVideo'), vw=v.videoWidth||640, vh=v.videoHeight||480, side=Math.min(vw,vh), sx=(vw-side)/2, sy=(vh-side)/2, O=320;
+  return cv(O,O,g=>{ g.translate(O,0); g.scale(-1,1); g.drawImage(v,sx,sy,side,side,0,0,O,O); }).toDataURL('image/jpeg',.88);
 }
 function processFace(){
   const v=$('tVideo'), vw=v.videoWidth||640, vh=v.videoHeight||480, side=Math.min(vw,vh), sx=(vw-side)/2, sy=(vh-side)/2, O=400;
@@ -930,7 +1152,7 @@ async function gameYilan(){
   const c=gameShell('YILAN','SKOR 0'); c.width=300; c.height=300; const g=c.getContext('2d');
   const N=15, C=20, BG='#c4cfa1', FG='#43523d';
   const emreImg=await loadImg('img/emre.jpg');
-  const faceImg=S.face ? await loadImg(S.face) : null;
+  const faceImg=await loadImg(S.faceRaw||S.face||fakeFace());
   const vid=await gameCam();
   const letters=['D','E','N','İ','Z'];
   let snake, dir, nd, food=null, eaten=0, chaser=null, phase='normal', t0=0, over=false, raf, started=false;
@@ -939,6 +1161,10 @@ async function gameYilan(){
   const reset=()=>{ snake=[{x:7,y:8},{x:6,y:8},{x:5,y:8}]; dir={x:1,y:0}; nd=dir; started=false; if(phase==='normal') placeFood(); };
   const turn=(dx,dy,down=true)=>{ if(!down||over) return; if(dx===-dir.x&&dy===-dir.y) return; nd={x:dx,y:dy}; if(!started){ started=true; if(phase==='normal') gmMsg(letters.slice(0,eaten).join(' ')); } };
   if(Q.has('hizli')) window.__yilan={get food(){return food}, get head(){return snake[0]}, get dir(){return dir}, turn};
+  // tanıtım: yılanın başı sensin
+  g.fillStyle=BG; g.fillRect(0,0,300,300); if(faceImg) drawCircleImg(g,faceImg,150,135,84); g.strokeStyle=FG; g.lineWidth=4; g.beginPath(); g.arc(150,135,84,0,7); g.stroke();
+  g.fillStyle=FG; g.font='30px VT323, monospace'; g.textAlign='center'; g.fillText('BU SENSİN',150,258); A.tone(523,.12,{type:'square',gain:.06}); A.tone(392,.2,{type:'square',gain:.06,delay:.14});
+  await sleep(2800);
   reset(); dpad(turn); keyDir=turn; swipe($('gmStage'),turn);
   gmMsg('Başlamak için yön seç');
   const draw=()=>{
@@ -950,8 +1176,9 @@ async function gameYilan(){
       if(eaten>=3){ g.fillStyle='#000'; g.fillRect(fx-C*.3,fy-C*.12,C*.2,C*.16); g.fillRect(fx+C*.1,fy-C*.12,C*.2,C*.16); } }
     g.fillStyle=FG; snake.slice(1).forEach(p=>g.fillRect(p.x*C+2,p.y*C+2,C-4,C-4));
     const hd=snake[0], hx=hd.x*C+C/2, hy=hd.y*C+C/2;
-    if(vid&&vid.videoWidth) drawCircleImg(g,vid,hx,hy,C*.85,true); else if(faceImg) drawCircleImg(g,faceImg,hx,hy,C*.85); else { g.fillStyle=FG; g.beginPath(); g.arc(hx,hy,C*.6,0,7); g.fill(); }
-    g.strokeStyle=FG; g.lineWidth=2; g.beginPath(); g.arc(hx,hy,C*.85,0,7); g.stroke();
+    const HR=C*1.05;
+    if(phase==='chase' && vid && vid.videoWidth) drawCircleImg(g,vid,hx,hy,HR,true); else if(faceImg) drawCircleImg(g,faceImg,hx,hy,HR); else { g.fillStyle=FG; g.beginPath(); g.arc(hx,hy,C*.6,0,7); g.fill(); }
+    g.strokeStyle=FG; g.lineWidth=2; g.beginPath(); g.arc(hx,hy,HR,0,7); g.stroke();
     if(chaser){ g.fillStyle='#0b0d0a'; chaser.slice(1).forEach(p=>g.fillRect(p.x*C+1,p.y*C+1,C-2,C-2));
       const ch=chaser[0], cx=ch.x*C+C/2, cy=ch.y*C+C/2; if(emreImg) drawCircleImg(g,emreImg,cx,cy,C*.9);
       g.fillStyle='rgba(0,0,0,.7)'; g.beginPath(); g.arc(cx,cy,C*.9,0,7); g.fill();
@@ -1157,6 +1384,35 @@ async function gameSakla(){
 }
 
 /* ---------- oyunların yüklenmesi ---------- */
+const REENTRY={
+  g_yilan:[
+    ()=>sysToast('Yılan','Bu oyun için hakkınız doldu.'),
+    ()=>post('bilinmeyen',{from:'bilinmeyen',type:'text',text:'skorun hâlâ 47'}),
+    ()=>post('emre',{from:'emre',type:'text',text:'bir daha oynama'}),
+    ()=>post('bilinmeyen',{from:'bilinmeyen',type:'image',src:S.faceRaw||S.face}),
+    ()=>sysToast('Yılan','Yılan seni bekliyor.'),
+  ],
+  g_besle:[ ()=>post('emre',{from:'emre',type:'text',text:'aç değilim'}) ],
+  g_sakla:[
+    ()=>post('anne',{from:'anne',type:'text',text:'Yine mi saklanıyorsun?',truth:'Yine mi uyuyorsun yavrum?'}),
+    ()=>sysToast('Saklambaç','Ebe sensin.'),
+    ()=>post('anne',{from:'anne',type:'text',text:'Yatağında yoksun',truth:'Yatağının başındayım'}),
+    ()=>post('babaanne',{from:'babaanne',type:'text',text:'SAKLANMA YAVRUM GEL'}),
+  ],
+};
+const reN={};
+async function reentry(id){
+  const n=reN[id]=(reN[id]||0)+1, list=REENTRY[id]||[];
+  // oyun bir anlığına açılır: son karesi donmuş
+  const c=gameShell(id==='g_yilan'?'YILAN':'SAKLAMBAÇ', id==='g_yilan'?'SKOR '+SIRA_NO:'EBE: SEN'); c.width=300; c.height=300; const g=c.getContext('2d');
+  g.fillStyle=id==='g_yilan'?'#2b0a0a':'#16181e'; g.fillRect(0,0,300,300);
+  const im=await loadImg(S.faceRaw||S.face||fakeFace()); if(im) drawCircleImg(g,im,150,130,70);
+  g.fillStyle='#ff2a3d'; g.font='44px VT323, monospace'; g.textAlign='center'; g.fillText(id==='g_yilan'?'SIRA SENDE':'BULUNDUN',150,250);
+  A.glitch(.4); $('device').classList.add('shake'); setTimeout(()=>$('device').classList.remove('shake'),300);
+  await sleep(1300); keyDir=null; show('home',false);
+  await sleep(1800);
+  const f=list[(n-1)%list.length]; if(f) f();
+}
 async function gamesPhase(){
   await sleep(4000);
   A.pop(); try{ navigator.vibrate&&navigator.vibrate([150,80,150]); }catch(e){}
@@ -1166,13 +1422,16 @@ async function gamesPhase(){
     {id:'g_besle',label:"Emre'yi Besle",cls:'ic-besle',txt:'🥚',run:gameBesle},
     {id:'g_sakla',label:'Saklambaç',cls:'ic-sakla',txt:'🙈',run:gameSakla},
   ];
-  let idx=0;
+  let idx=0, running=false;
   return new Promise(resolve=>{
     defs.forEach((d,i)=>{
       HOME_APPS.push({id:d.id,label:d.label,cls:d.cls,txt:d.txt,action:d.id,isNew:true,locked:i>0});
       ACTIONS[d.id]=async()=>{
-        if(i!==idx){ toast({title:'e-Sıra',av:'unknown'},{text:i<idx?'Bu oyun bitti.':'Önce '+defs[idx].label+' oyununu bitir.'}); return; }
-        await d.run(); idx++;
+        if(running) return;
+        if(i<idx){ reentry(d.id); return; }
+        if(i!==idx){ sysToast(d.label,'Önce '+defs[idx].label+' oyununu bitir.'); return; }
+        if(running) return; running=true;
+        await d.run(); idx++; running=false;
         const nx=defs[idx] && HOME_APPS.find(x=>x.id===defs[idx].id); if(nx) nx.locked=false;
         HOME_APPS.forEach(a=>a.isNew=false); renderHome(); show('home');
         if(idx>=defs.length){ CAM.stream && camStop(); setTimeout(resolve,7000*SPEED); }
@@ -1190,50 +1449,55 @@ async function scrambleTo(el,txt){
   for(let f=1;f<=14;f++){ let o=''; for(let i=0;i<L;i++) o += i < (f/14)*L ? (txt[i]||'') : (Math.random()<.6 ? chars[Math.floor(Math.random()*chars.length)] : (old[i]||'')); el.textContent=o; if(f%3===0) A.key(); await new Promise(r=>setTimeout(r,55)); }
   el.textContent=txt;
 }
-async function morphChat(cid){
-  const list=CH[cid].list.filter(m=>m.truth && m.text!==m.truth); if(!list.length) return;
-  openChat(cid); CH[cid].el.querySelector('.undiv')?.remove(); await sleep(1300);
-  for(const m of list){
-    m.el.scrollIntoView({block:'center',behavior:'smooth'}); await sleep(600);
-    const tx=m.el.querySelector('.tx')||m.el; A.glitch(.15); await scrambleTo(tx,m.truth); m.text=m.truth; await sleep(900);
-  }
-  await sleep(900);
-}
-async function reveal(){
-  ambience('drone'); SFX.whispers(0,3);
-  // 1) yas mesajları: hepsi Deniz hakkındaydı
-  await morphChat('aile');
-  // 2) Emre sohbeti: "gelen" mesajlar aslında senin gönderdiklerin
-  openChat('emre'); await sleep(1400);
-  const c=CH.emre; c.el.querySelector('.undiv')?.remove();
-  for(const m of c.list.filter(m=>m.flip)){
-    m.el.scrollIntoView({block:'center',behavior:'smooth'}); await sleep(450);
-    const nm={...m,from:'me',flipped:true}; if(typeof m.flip==='string') nm.text=m.flip;
-    c.prev=null; const row=renderMsg(c,nm); row.classList.add('flipping'); m.el.replaceWith(row); m.el=row; A.glitch(.12); await sleep(520);
-  }
-  c.sub='çevrimiçi'; $('cSub').textContent='çevrimiçi';
+/* gerçek ortaya çıktıktan sonra: her sohbet, oyuncu açtığında gözünün önünde değişir */
+let revealBusy=false;
+function rerender(c,m,nm){ const keep=c.prev; c.prev=null; const row=renderMsg(c,nm); m.el.replaceWith(row); Object.assign(m,nm,{el:row}); c.prev=keep; return row; }
+function prepReveal(){
+  S.revealed=true; stopAllVoices();
+  // Deniz'in hiç iletilmeyen (tek gri tikli) mesajları birden iletildi
+  for(const id in CH) for(const m of CH[id].list) if(m.from==='me' && m.day>=2 && !m.flip && !m.flipped && !m.delivered && m.type!=='sys'){ m.delivered=true; const tk=m.el.querySelector('.tk'); if(tk) tk.innerHTML=svg('ticks'); }
+  // yalan sesli mesajlar silinmiş görünür
+  for(const id in CH) for(const m of CH[id].list) if(m.lie && !m.deleted) rerender(CH[id],m,{...m,deleted:true});
+  // arama kaydı: Emre seni aramadı, sen onu aradın
+  for(const c of CALLS) if(c.who==='emre' && c.kind==='missed'){ c.kind='out'; c.flipped=true; }
+  renderCalls();
   const ph=PHOTOS.find(p=>p.video==='emre'); if(ph) ph.who='Siz';
-  await sleep(1600);
-  // 3) arama kaydı: Emre seni aramadı, sen onu aradın
-  const ce=CALLS.find(x=>x.who==='emre'&&x.kind==='missed');
-  if(ce){
-    back('wa'); show('wa'); document.querySelector('.waNav a[data-tab="calls"]').click(); await sleep(1500);
-    const i=CALLS.indexOf(ce); $('callList').children[i]?.classList.add('flipping'); A.glitch(.2);
-    ce.kind='out'; await sleep(300); renderCalls(); $('callList').children[i]?.classList.add('flipping'); await sleep(2200);
-    document.querySelector('.waNav a[data-tab="chats"]').click(); await sleep(600);
+  const si=STATUS.findIndex(x=>x.flip); if(si>=0){ MY_STATUS=STATUS[si]; STATUS.splice(si,1); }
+  CH.emre.sub='çevrimiçi';
+  for(const id in CH){ const c=CH[id]; c.revealPending=c.list.some(m=>(m.truth&&m.text!==m.truth)||(m.flip&&!m.flipped)); }
+}
+async function revealAnim(cid){
+  const c=CH[cid]; if(!c || !c.revealPending || revealBusy) return;
+  revealBusy=true; c.revealPending=false;
+  c.el.querySelector('.undiv')?.remove();
+  await new Promise(r=>setTimeout(r,1100));
+  let first=true;
+  for(const m of c.list){
+    const need=(m.truth&&m.text!==m.truth)||(m.flip&&!m.flipped); if(!need) continue;
+    const live=viewing(cid);
+    if(live){ if(first){ SFX.whispers(0,2.5); first=false; } m.el.scrollIntoView({block:'center',behavior:'smooth'}); await new Promise(r=>setTimeout(r,550)); }
+    if(m.truth && m.text!==m.truth){
+      const tx=m.el.querySelector('.tx')||m.el;
+      if(live){ A.glitch(.12); await scrambleTo(tx,m.truth); } else tx.textContent=m.truth;
+      m.text=m.truth;
+      if(live) await new Promise(r=>setTimeout(r,800));
+    } else {
+      const nm={...m,from:'me',flipped:true}; if(typeof m.flip==='string') nm.text=m.flip; if(m.type==='voice') nm.alt='kapi';
+      const row=rerender(c,m,nm); if(live){ row.classList.add('flipping'); A.glitch(.1); await new Promise(r=>setTimeout(r,500)); }
+    }
   }
-  // 4) annenin mesajları
-  await morphChat('anne');
-  // 5) Deniz'in hiç iletilmeyen mesajları bir anda iletiliyor
-  const pend=[]; for(const id in CH) for(const m of CH[id].list) if(m.from==='me' && m.day>=2 && !m.flipped && !m.delivered && m.type!=='sys') pend.push(m);
-  if(pend.length){
-    openChat('aile'); await sleep(1200);
-    for(const m of pend){ m.delivered=true; const tk=m.el.querySelector('.tk'); if(tk) tk.innerHTML=svg('ticks'); A.tone(1400,.03,{gain:.05}); await sleep(160); }
-    await sleep(1500);
-    await say('aile','baba','Deniz\'in telefonundan mesajlar geldi?!');
-    await say('aile','anne','Hepsi şimdi düştü. Dünden beri yazdıkları…');
-    await say('aile','emre','Telefon bende. Elimde. Kimse bir şey yazmadı.',{after:2200});
-  }
+  c.revealedSeen=true;
+  if(cid==='emre'){ $('cSub').textContent=c.sub; }
+  revealBusy=false;
+}
+/* Deniz'in gece kaydettiği sesli mesaj: kapının vurulması, nefes */
+function recVO(seconds,onprog){
+  let stopped=false, res; const t0=performance.now(), tm=[];
+  const br=setInterval(()=>A.noise(1.1,{type:'lowpass',f:450,gain:.06,a:.4}),1700);
+  tm.push(setTimeout(()=>SFX.knock(.2),2000), setTimeout(()=>SFX.knock(.2),6000));
+  const h={done:new Promise(r=>res=r), stop(){ stopped=true; clearInterval(br); tm.forEach(clearTimeout); res(); }};
+  const tick=()=>{ if(stopped) return; const p=Math.min(1,(performance.now()-t0)/1000/seconds); onprog&&onprog(p); if(p<1) requestAnimationFrame(tick); else h.stop(); };
+  tick(); return h;
 }
 const LINK_DENIZ={type:'link',url:'https://e-sira.app/omur-testi?ref=deniz',title:'Ömür Testi ⏳ Ne kadar ömrün kaldı?',desc:'Doğum tarihini gir, kalan ömrünü öğren. %98 doğru çıkıyor 😱',domain:'e-sira.app'};
 async function takerAlive(k,fm){
@@ -1244,7 +1508,6 @@ async function takerAlive(k,fm){
        baba:[`Deniz'in numarasından bana bir link gelmiş, ${T}'de.`,'Telefonu Emre\'deydi o saatte.',link,'Açtım, bakayım dedim.','1 gün yazıyor.'],
        teyze:['Benim attığım link bana geri geldi 😳',`Deniz'in numarasından, saat ${T}.`,link,'Açtım yine.','Bu sefer 1 gün yazıyor.'],
        babaanne:['Deniz bana bir şey göndermiş yavrum.',`Saat ${T}. Ben uyuyordum.`,link,'Torunum açtı bana.','Bir gün yazıyor. Sıra bende demek.']}[k];
-  openChat('aile'); await sleep(900);
   for(let i=0;i<L.length;i++) await say('aile',k,L[i], i===L.length-1?{after:2200}:{});
   SFX.chime();
   toast({raw:`<div class="nt red"><span class="ntAv" style="display:grid;place-items:center;background:#c8102e;font-family:VT323;font-size:22px;color:#fff">${SIRA_NO+1}</span><div class="ntB"><div class="ntH"><span class="appdot">${svg('web')}</span>e-Sıra · şimdi</div><div class="ntT">Yeni kayıt: ${esc(PEOPLE[k].name)}</div><div class="ntX">Sıra numarası ${SIRA_NO+1} · Kalan süre: 23:59:59</div></div></div>`},{});
@@ -1318,6 +1581,7 @@ function forwardPicker(){
 }
 
 async function finale(){
+  stopAllVoices();
   const f=$('fin'); finSet('','',''); f.classList.add('on');
   $('bigcd').classList.remove('on'); $('device').classList.remove('shake'); $('glitch').classList.remove('on');
   S.remainRun=false; ambience(null);
@@ -1368,56 +1632,146 @@ async function finale(){
   }
   return endKabul();
 }
+async function afterWake(color){
+  $('fin').classList.remove('on'); camOff(); backToPhone(); setClock(6,12,3); prepReveal(); ambience('drone');
+  post('aile',{from:'baba',text:'Deniz\'in telefonundan mesajlar geldi?!',silent:true});
+  lockNotifs([notifHTML('Kocaman Ailemiz ❤️','Babam: Deniz\'in telefonundan mesajlar geldi?!',AV.aile,{when:'06:11'}), notifHTML('Emre','3 giden sesli arama',AV.emre,{when:'03:14'})]);
+  show('lock',false); S.stack=[];
+  await sleep(1500); await whiteTo(color,0,2500);
+  await waitUnlock(); show('home');
+  await say('aile','anne','Hepsi şimdi düştü. Dünden beri yazdıkları…',{gap:5000});
+  await say('aile','emre','Telefon bende. Elimde. Kimse bir şey yazmadı.');
+  await waitChat('aile',60000);
+  await waitFor(()=>!revealBusy,300);
+}
+async function nudgeEmre(){
+  if(CH.emre.revealedSeen) return;
+  A.pop(); toast({raw:notifHTML('Emre','Gece gönderilen mesajlar · 03:10–03:15',AV.emre,{when:'şimdi'})},{},()=>openChat('emre'));
+  const t0=performance.now(); await waitFor(()=>CH.emre.revealedSeen || performance.now()-t0>45000*SPEED,400);
+  await waitFor(()=>!revealBusy,300); await sleep(3000);
+}
 async function endKabul(){
   monFlat(); finSet('','',''); await sleep(5000);
   monStop(); ecgStop(); await whiteTo('#000',1,800);
-  $('fin').classList.remove('on'); camOff(); backToPhone(); show('home',false); setClock(6,12);
-  await sleep(2000); await whiteTo('#000',0,2000);
-  await reveal();
-  openChat('aile'); await sleep(800);
+  await afterWake('#000');
   await say('aile','anne','Deniz…');
-  await say('aile','anne','Deniz\'i kaybettik.',{after:1800});
-  sys('aile','Deniz gruptan çıktı',true); A.glitch(.3); await sleep(2600);
+  await say('aile','anne','Deniz\'i kaybettik.',{after:2200});
+  sys('aile','Deniz gruptan çıktı',true); A.glitch(.3); await sleep(3000);
   await takerAlive('emre',null);
+  await nudgeEmre();
   finalScreen('SON: KABUL','Gözlerini açmadın. Sıran tamamlandı.<br>O gece Emre seni hiç aramadı; arayan sendin.<br>Ama link hâlâ dolaşıyor.','Emre');
 }
 async function endDevir(k,fm){
   MON.bpm=96; finSet('','Uyanıyorsun.'); await sleep(2500);
   await whiteTo('#fff',1,2000); monStop(); ecgStop(); SFX.sizzle();
-  $('fin').classList.remove('on'); camOff(); backToPhone(); show('home',false); setClock(6,12);
-  await sleep(1800); await whiteTo('#fff',0,2500);
-  await reveal();
-  openChat('aile'); await sleep(800);
+  await afterWake('#fff');
   await say('aile','anne','Deniz gözlerini açtı!! 😭');
   await say('aile','babaanne','Kurşun tuttu yavrum. Döndün.');
   await say('aile','baba','Oh be! Yaşıyor 😭',{after:2400});
   await takerAlive(k,fm);
+  await nudgeEmre();
   finalScreen('SON: DEVİR','Uyandın. Sıranı '+esc(PEOPLE[k].name)+' aldı.<br>Linki ona sen gönderdin; o sırada telefonun Emre\'nin cebindeydi.<br>Ama link hâlâ dolaşıyor.',PEOPLE[k].name);
 }
+
+/* ---------- hikâye yardımcıları ---------- */
+function hpost(cid,from,day,time,m){
+  if(typeof m==='string') m={text:m};
+  const [h,mi]=time.split(':').map(Number);
+  post(cid,{from,type:'text',...m,day,time,ts:day*1440+h*60+mi,silent:true,read:true});
+}
+function renotify(cid){ const c=CH[cid]; const m=[...c.list].reverse().find(x=>x.from!=='me'&&x.type!=='sys'&&x.type!=='e2e'); if(m) notify(cid,m); }
+/* oyuncu o sohbeti açana kadar bekle; arada bildirimi hatırlat */
+async function waitChat(cid,max=90000,nudge=30000){
+  const t0=performance.now(); let ln=t0;
+  await waitFor(()=>{ const now=performance.now();
+    if(viewing(cid)) return true;
+    if(now-t0>max*SPEED) return true;
+    if(now-ln>nudge*SPEED && S.screen!=='call' && S.screen!=='game' && !$('task').classList.contains('on')){ ln=now; renotify(cid); }
+    return false; },400);
+}
+/* oyuncu bir şeyin ortasında değilken devam et (tarayıcı, video, arama, oyun) */
+async function waitCalm(max=40000){ const t0=performance.now(); await waitFor(()=>!['browser','viewer','call','game','camera','status'].includes(S.screen) || performance.now()-t0>max*SPEED,500); }
+function stopAllVoices(){ try{ curVO&&curVO.stop(); }catch(e){} try{ 'speechSynthesis' in window && speechSynthesis.cancel(); }catch(e){} }
+function sysToast(title,body,onTap){ A.pop(); toast({raw:`<div class="nt red"><span class="ntAv" style="display:grid;place-items:center;background:#c8102e;font-family:VT323;font-size:22px;color:#fff">${SIRA_NO}</span><div class="ntB"><div class="ntH"><span class="appdot">${svg('web')}</span>e-Sıra · şimdi</div><div class="ntT">${esc(title)}</div><div class="ntX">${esc(body)}</div></div></div>`},{},onTap); }
+async function ghostType(cid,who,ms){ setTyping(cid,who); await sleep(ms); setTyping(cid,null); }
 
 /* =========================================================
    HİKÂYE
    ========================================================= */
 function history(){
-  const silent={silent:true,read:true};
-  post('aile',{type:'e2e',from:'sys',day:1,time:'07:00',ts:1440+420,...silent});
-  post('aile',{from:'babaanne',type:'image',src:IMG.gunaydin,day:1,time:'07:12',ts:1440+432,...silent});
-  post('aile',{from:'teyze',text:'Günaydın canlarım, hayırlı perşembeler 🌹🌹🌹',day:1,time:'07:31',ts:1440+451,...silent});
-  post('aile',{from:'baba',text:'Kombi yine su kaçırıyor, yarın usta gelecek',day:1,time:'12:02',ts:1440+722,...silent});
-  post('aile',{from:'anne',text:'Yarın akşam hepiniz bize gelin, mantı yapıyorum 🥟',day:1,time:'12:05',ts:1440+725,...silent});
-  post('aile',{from:'emre',text:'geliyorum 😋 bol yoğurtlu olsun',day:1,time:'12:06',ts:1440+726,...silent});
-  post('aile',{from:'teyze',text:'Emre\'m mantı deyince koşar 😄 Ben de börek getiririm',day:1,time:'12:08',ts:1440+728,...silent});
-  post('aile',{from:'me',text:'Ben de geliyorum 🙋',day:1,time:'12:10',ts:1440+730,...silent});
-  post('emre',{type:'e2e',from:'sys',day:1,time:'00:00',ts:1440,...silent});
-  post('emre',{from:'emre',text:'maçı izledin mi 😂😂',day:1,time:'20:12',ts:1440+1212,...silent});
-  post('emre',{from:'me',text:'izledim kuzen rezalet',day:1,time:'20:15',ts:1440+1215,...silent});
-  post('emre',{from:'emre',type:'image',src:IMG.mac,day:1,time:'20:16',ts:1440+1216,...silent});
-  post('anne',{from:'anne',text:'Ekmek aldın mı?',day:1,time:'18:44',ts:1440+1124,...silent});
-  post('anne',{from:'me',text:'Aldım anne',day:1,time:'18:50',ts:1440+1130,...silent});
-  post('baba',{from:'baba',text:'Arabanın sigortası bu ay bitiyor, hatırlat bana',day:1,time:'09:20',ts:1440+560,...silent});
-  post('okul',{from:'ali',text:'yarın sınav var mı',day:1,time:'19:30',ts:1440+1170,...silent});
-  post('okul',{from:'zeynep',text:'yok pazartesi',day:1,time:'19:31',ts:1440+1171,...silent});
-  // teyzenin linki (okunmamış)
+  const h=hpost;
+  // --- aile grubu
+  h('aile','sys',0,'07:00',{type:'e2e'});
+  h('aile','teyze',0,'07:52',{type:'image',src:IMG.gunaydin2});
+  h('aile','yenge',0,'08:05','Günaydın canlarım 🌹🌹🌹');
+  h('aile','babaanne',0,'08:40','GUNAYDIN');
+  h('aile','dayi',0,'08:41','Günaydın 👍');
+  h('aile','anne',0,'13:18',{type:'image',src:IMG.yemek,cap:'Bugünkü menü 😋'});
+  h('aile','yenge',0,'13:22','Ellerine sağlık Sevgi\'ciğim 😍');
+  h('aile','teyze',0,'13:25','Ellerine sağlık kardeşim 👏👏 bize de saklayın');
+  h('aile','babaanne',0,'13:41','ELINE SAGLIK KIZIM');
+  h('aile','eniste',0,'19:45',{fwd:'cok',text:'‼️SON DAKİKA‼️ Yarından itibaren WhatsApp ücretli oluyor. Bu mesajı 10 kişiye gönderin, hesabınız ücretsiz kalsın. Gönderiyoruz arkadaşlar 🙏🙏'});
+  h('aile','emre',0,'19:52','baba bu yalan 😂😂');
+  h('aile','selin',0,'19:53','babaa 🤦‍♀️');
+  h('aile','eniste',0,'19:58','Ben dikkat edin diye attım');
+  h('aile','baba',0,'20:10','😄');
+  h('aile','teyze',1,'07:31',{type:'image',src:IMG.gunaydin});
+  h('aile','babaanne',1,'07:33','Gunaydin yavrularim');
+  h('aile','yenge',1,'07:40','Günaydın 🌸☕');
+  h('aile','baba',1,'12:02','Kombi yine su kaçırıyor, yarın usta gelecek');
+  h('aile','anne',1,'12:05','Yarın akşam hepiniz bize gelin, mantı yapıyorum 🥟');
+  h('aile','emre',1,'12:06','geliyorum 😋 bol yoğurtlu olsun');
+  h('aile','teyze',1,'12:08','Emre\'m mantı deyince koşar 😄 Ben de börek getiririm');
+  h('aile','yenge',1,'12:11','Biz de geliyoruz, tatlı benden 🍰');
+  h('aile','dayi',1,'12:14','Ben işten çıkınca gelirim, 8 gibi');
+  h('aile','me',1,'12:20','Ben de varım 🙋');
+  h('aile','babaanne',1,'17:02','SEVGI KIZIM ILACLARIMI ALDINMI');
+  h('aile','anne',1,'17:10','Aldım anne, akşam getiriyorum');
+  h('aile','babaanne',1,'17:11','👍👍');
+  // --- kuzenler
+  h('kuzen','sys',0,'00:00',{type:'e2e'});
+  h('kuzen','burak',0,'20:31','akşam maç var izleyen?');
+  h('kuzen','emre',0,'20:33','ben izlicem');
+  h('kuzen','selin',0,'20:34','ilgilenmiyorum 💅');
+  h('kuzen','me',0,'20:40','ben de bakarım');
+  h('kuzen','burak',0,'22:58','rezaletti 🤦‍♂️');
+  h('kuzen','emre',1,'15:12','yarın mantıdan sonra çıkalım mı');
+  h('kuzen','burak',1,'15:20','olur');
+  h('kuzen','me',1,'15:31','olur bence de');
+  h('kuzen','emre',1,'21:20','annem yine gruba bişey atıcak hissediyorum 😂');
+  // --- özel sohbetler
+  h('emre','sys',1,'00:00',{type:'e2e'});
+  h('emre','emre',1,'20:12','maçı izledin mi 😂😂');
+  h('emre','me',1,'20:15','izledim kuzen rezalet');
+  h('emre','emre',1,'20:16',{type:'image',src:IMG.mac});
+  h('emre','emre',1,'20:16','şu pozisyona bak');
+  h('anne','anne',1,'18:44','Ekmek aldın mı?');
+  h('anne','me',1,'18:50','Aldım anne');
+  h('anne','anne',1,'18:51','Aferin 😘 bir de çamaşırları as');
+  h('anne','me',1,'18:58','Tamam');
+  h('baba','baba',0,'09:20','Arabanın sigortası bu ay bitiyor, hatırlat bana');
+  h('baba','me',1,'08:10','Baba sigorta');
+  h('baba','baba',1,'08:30','Tamam 👍');
+  h('mert','mert',1,'16:05','kanka yarın halı saha var gelcen mi');
+  h('mert','me',1,'16:20','bilmiyorum akrabalar gelecek');
+  h('mert','mert',1,'16:21','😒');
+  h('mert','mert',1,'16:21','tamam kaçırırsın');
+  h('zeynep','zeynep',0,'21:40','fizik notlarını atar mısın');
+  h('zeynep','me',0,'21:55','yarın okulda veririm');
+  h('zeynep','zeynep',0,'22:01','tamam 🙏');
+  // --- kalabalık gruplar
+  h('okul','kaan',1,'19:28','fizik ödevi kimde var');
+  h('okul','ali',1,'19:30','yarın sınav var mı');
+  h('okul','zeynep',1,'19:31','yok pazartesi');
+  h('okul','ali',1,'19:31','oh be');
+  h('saha','kaan',1,'14:00','Cuma 21:00 kadro:\n1. Kaan\n2. Mert\n3. Ali\n4. Berk\n5.\n6.');
+  h('saha','mert',1,'14:05','Deniz gel kanka eksik var');
+  h('apt','yonetici',0,'10:15','Değerli komşularımız, asansör bakımı yarın 10:00-12:00 arası yapılacaktır. Bilginize.');
+  h('apt','komsu',0,'10:40','Teşekkürler Cengiz Bey');
+  h('apt','yonetici',1,'18:30','Kasım aidatlarını yatırmayan komşularımızın en kısa sürede yatırmasını rica ederim.');
+  CH.kargo.archived=true;
+  h('kargo','kargo',1,'10:12','Sayın müşterimiz, 4711823 takip numaralı gönderiniz dağıtıma çıkmıştır.');
+  // --- teyzenin linki (okunmamış)
   post('aile',{from:'teyze',type:'voice',vo:'teyze_d1',day:1,time:'21:33',ts:1440+1293,silent:true});
   const link={from:'teyze',type:'link',url:'https://e-sira.app/omur-testi?ref=nermin',title:'Ömür Testi ⏳ Ne kadar ömrün kaldı?',desc:'Doğum tarihini gir, kalan ömrünü öğren. %98 doğru çıkıyor 😱',domain:'e-sira.app',thumb:IMG.linkThumb,day:1,time:'21:33',ts:1440+1293,silent:true};
   post('aile',link);
@@ -1428,53 +1782,81 @@ async function day1(){
   S.day=1; setClock(21,34,1);
   ambience('ev');
   history();
-  lockNotifs([notifHTML('Aile 🏠','Nermin Teyze: 🎤 Sesli mesaj ('+fmtDur(lineDur('teyze_d1'))+')',AV.teyze,{when:'21:33'}), notifHTML('Aile 🏠','Nermin Teyze: https://e-sira.app/omur-testi?ref=nermin',AV.teyze,{when:'21:33'})]);
+  lockNotifs([notifHTML('Kocaman Ailemiz ❤️','Nermin Teyze: 🎤 Sesli mesaj ('+fmtDur(lineDur('teyze_d1'))+')',AV.teyze,{when:'21:33'}), notifHTML('Kocaman Ailemiz ❤️','Nermin Teyze: https://e-sira.app/omur-testi?ref=nermin',AV.teyze,{when:'21:33'}), notifHTML('Kuzenler 👊','Emre: annem yine gruba bişey atıcak hissediyorum 😂',AV.emre,{when:'21:20'})]);
   A.pop();
   await waitUnlock();
-  show('home'); await sleep(250); openChat('aile');
-  await sleep(1800);
+  show('home');
+  // oyuncu serbest: aile grubunu açınca konuşma başlar
+  await waitChat('aile',70000);
+  await sleep(3000);
   await say('aile','anne','Nermin yine ne attın gece gece 😄');
-  await say('aile','teyze','Yapın yapın, benimki 12 yıl çıktı 😍🌹');
-  await say('aile','baba','Bende 24 yıl çıktı 😄 emekliliği görürüm herhalde');
-  await say('aile','babaanne','Ben bakmam öyle şeylere, uğursuzluk getirir.');
-  await say('aile','emre','anne bende 1 gün yazıyor 😂😂');
-  await say('aile','emre',{type:'image',src:IMG.emreShot},{typing:1200});
+  await say('aile','teyze','Bakın bakın çok doğru çıkıyor 😍');
+  await say('aile','teyze','Benimki 12 yıl çıktı, az kalmış 😂');
+  await say('aile','yenge','Ayy Nermin abla korkuttun beni 😅');
+  await say('aile','eniste','Bunlar hep bilgi toplamak için. Doğum tarihi falan girmeyin.');
+  await say('aile','teyze','Hüseyin sen her şeye karışma 🙄');
+  await say('aile','baba','Bende 24 yıl çıktı 😄 emekliliği görürüz herhalde');
+  await say('aile','babaanne','BEN BAKMAM OYLE SEYLERE UGURSUZLUK GETIRIR');
+  await say('aile','dayi','31 yıl 💪');
+  await say('aile','emre','anne bende 1 gün yazıyo 😂😂');
+  await say('aile','emre',{type:'image',src:IMG.emreShot});
   await say('aile','emre',{type:'voice',vo:'emre_d1'});
-  await say('aile','anne','Aaa! Öyle şaka mı olur Emre');
+  await say('aile','teyze','Emre ağzından yel alsın 😠 öyle şaka mı olur');
+  await say('aile','selin','anne şaka yapıyo abim 🙄 her şeye inanma');
   await say('aile','teyze',{type:'text',text:'Deniz sen de bak yavrum 😘',quote:{who:'teyze',text:'Ömür Testi ⏳ Ne kadar ömrün kaldı?'}});
   const c=await choose('aile',['Tamam teyze bakıyorum 🙂','Teyze bunlar hep uydurma 😅']);
-  if(c===1) await say('aile','teyze','Uydurma değil yavrum, herkes baktı. Sen de bak 😘');
+  if(c===1){ await say('aile','teyze','Uydurma değil yavrum, herkes baktı. Sen de bak 😘'); await say('aile','eniste','Bakma Deniz.'); }
   S.link.lp.classList.add('glow');
-  await new Promise(r=>S.link.onTap=r); S.link.onTap=null; S.link.lp.classList.remove('glow');
+  let tapped=false; const tapP=new Promise(r=>S.link.onTap=()=>{ tapped=true; r(); });
+  (async()=>{ await sleep(45000); if(!tapped) await say('aile','teyze','Deniz baktın mı yavrum? 😘'); await sleep(50000); if(!tapped) await say('aile','yenge','Deniz\'inki kaç çıktı merak ettim 😄'); })();
+  await tapP; S.link.onTap=null; S.link.lp.classList.remove('glow');
   await testFlow();
   back('chat'); openChat('aile'); await sleep(500);
   A.send(); post('aile',{from:'me',type:'image',src:IMG.myShot,cap:'9 gün 😅'});
-  await sleep(800);
   await say('aile','emre','9 gün mü 😂 benden sonra sıra sende');
-  await say('aile','teyze','Uzun ömürlü olun hepiniz 🌹🌹');
+  await say('aile','yenge','Uzun ömürlü olun hepiniz 🌹🌹');
   await choose('aile',['Saçmalama Emre 😄','Yarın mantıda görüşürüz 🥟']);
   await say('aile','emre','tamam tamam 😂 iyi geceler millet');
   await say('aile','emre','yarın helvada görüşürüz 💀');
-  await say('aile','anne','EMRE!');
+  await say('aile','teyze','EMRE!');
+  await say('aile','eniste','Emre bırak telefonu yat 😠');
+  await say('aile','dayi','Çocuklar yatın artık, yarın okul var');
+  // kuzenler, sonra Emre özelden
+  await say('kuzen','burak','emre ne yazdın gruba 😂',{gap:9000});
+  await say('kuzen','emre','şaka lan 😂');
+  await say('emre','emre','kuzen cidden 1 gün yazıyo bende',{gap:12000});
+  await say('emre','emre','sayfayı kapattım ama bi tane daha açıldı kendi kendine');
+  await say('emre','emre','sıra no 12 yazıyo');
+  const r=await choose('emre',['Şaka yapma 😄','Ss at bakayım']);
+  await say('emre','emre', r===1 ? 'attım ya grupta' : 'şaka değil valla');
+  await say('emre','emre','neyse yatıyorum ben');
+  await say('emre','emre','iyi geceler kuzen');
+  // annem
+  await say('anne','anne','Deniz yat artık, yarın erken kalkacaksın',{gap:16000});
+  await say('anne','anne','Odanın ışığı hâlâ yanıyor, kapının altından görüyorum 😠');
+  const a=await choose('anne',['Tamam anne yatıyorum','5 dk 🙏']);
+  await say('anne','anne', a===0 ? '👍 İyi geceler' : '5 dk diyorsun 1 saat oluyor');
+  await sleep(14000);
+  await waitCalm();
   await sleep(4000);
-  await say('aile','teyze','Hadi iyi geceler canlarım 🌙🌹',{gap:5000});
-  await sleep(7000);
 }
 
 async function night(){
-  ambience(null);
-  await interlude('PERŞEMBE GECESİ','UYKU',2200);
+  ambience(null); stopAllVoices();
+  await interlude('PERŞEMBE GECESİ','UYKU',3200);
   ambience('drone');
   const sl=$('sleep'); sl.classList.add('on'); await interOut();
   $('slTxt').textContent='Uyuyorsun.';
-  const calls=['03:12','03:13','03:14'];
-  $('slClock').textContent='03:10'; await sleep(4500);
-  $('slClock').textContent='03:11'; await sleep(3500);
-  for(const t of calls){
+  $('slClock').textContent='03:09'; await sleep(5000);
+  $('slClock').textContent='03:10'; A.tone(1046,.05,{gain:.03}); await sleep(4000);
+  $('slClock').textContent='03:11'; A.tone(1046,.05,{gain:.03}); await sleep(3500);
+  for(const t of ['03:12','03:13','03:14']){
     $('slClock').textContent=t; $('slPhone').classList.add('buzz'); A.buzz(1.2); A.ringStart(true);
-    await sleep(3200); A.ringStop(); $('slPhone').classList.remove('buzz'); await sleep(1300);
+    await sleep(3600); A.ringStop(); $('slPhone').classList.remove('buzz'); await sleep(1800);
   }
-  $('slClock').textContent='03:15'; A.tone(1046,.05,{gain:.03}); await sleep(2200);
+  $('slClock').textContent='03:15'; A.tone(1046,.05,{gain:.03}); await sleep(2600);
+  SFX.knock(.3); await sleep(3500);
+  $('slClock').textContent='03:16'; await sleep(2500);
   // gece olanlar (oyuncu uyurken)
   const d=2, base=2*1440;
   post('emre',{from:'emre',text:'deniz',flip:'emre',day:d,time:'03:10',ts:base+190,silent:true});
@@ -1483,77 +1865,116 @@ async function night(){
   post('emre',{from:'emre',text:'kapının altına bak',flip:'kapının altına bak',day:d,time:'03:11',ts:base+191,silent:true});
   for(const [t,ts] of [['03:12',192],['03:13',193],['03:14',194]]) post('emre',{from:'emre',type:'call',flip:true,day:d,time:t,ts:base+ts,silent:true});
   post('emre',{from:'emre',type:'voice',vo:'emre_vm',flip:true,day:d,time:'03:15',ts:base+195,silent:true});
+  post('kuzen',{from:'emre',text:'uyanık olan var mı',flip:'uyanık olan var mı',day:d,time:'03:12',ts:base+192,silent:true});
+  post('kuzen',{from:'emre',text:'deniz telefonu aç',flip:'emre telefonu aç',day:d,time:'03:13',ts:base+193,silent:true});
+  post('apt',{from:'komsu',text:'Yukarı katlarda biri kapıları tek tek çalıyor, duyan var mı?',day:d,time:'03:16',ts:base+196,silent:true});
+  post('apt',{from:'komsu',text:'Gözetliyorum kimse yok ama hâlâ çalıyor',day:d,time:'03:18',ts:base+198,silent:true});
   addCall({who:'emre',kind:'missed',t:'Bugün 03:14',n:3});
   PHOTOS.unshift({video:'emre',thumb:IMG.emreThumb,who:'Emre',when:'Bugün 03:11'});
+  PHOTOS.unshift({img:IMG.oda,who:'Kamera',when:'Bugün 03:11'});
+  STATUS.unshift({who:'emre',img:IMG.emreThumb,cap:'kapıyı açma',t:'Bugün 03:11',flip:true});
   CH.emre.sub='son görülme bugün 03:15';
   sl.classList.remove('on');
-  await interlude('CUMA','07:48',2400);
+  await interlude('CUMA','07:48',3200);
   ambience('sabah');
   setClock(7,48,2);
   post('aile',{from:'baba',text:'Nermin\'in evine gidiyoruz. Emre fenalaşmış',truth:'Deniz\'in odasına girdik. Deniz uyanmıyor',day:2,time:'06:41',ts:base+401,silent:true});
   post('aile',{from:'anne',text:'Ambulans geldi',day:2,time:'06:52',ts:base+412,silent:true});
+  post('aile',{from:'yenge',text:'Ne oldu Sevgi?? Haber verin',day:2,time:'06:58',ts:base+418,silent:true});
   post('aile',{from:'baba',text:'Emre\'yi kaybettik 😞 Başımız sağ olsun',truth:'Deniz\'i yoğun bakıma aldılar 😞',day:2,time:'07:20',ts:base+440,silent:true});
   post('aile',{from:'babaanne',text:'😭😭😭',day:2,time:'07:22',ts:base+442,silent:true});
+  post('aile',{from:'dayi',text:'Ne diyorsunuz?! Geliyorum hemen',day:2,time:'07:24',ts:base+444,silent:true});
+  post('aile',{from:'yenge',text:'İnanamıyorum 😭😭',day:2,time:'07:25',ts:base+445,silent:true});
+  post('kuzen',{from:'burak',text:'Selin ne oluyor?',day:2,time:'07:35',ts:base+455,silent:true});
+  post('kuzen',{from:'selin',text:'abim…',truth:'Deniz…',day:2,time:'07:44',ts:base+464,silent:true});
   post('anne',{from:'anne',text:'Deniz uyandın mı? Ara beni',truth:'Deniz uyan. Ne olur uyan.',day:2,time:'07:40',ts:base+460,silent:true});
+  post('mert',{from:'mert',text:'kanka duydum.. başın sağ olsun 😔',truth:'kanka annen yazdı, hastanedeymişsin?? iyi misin 😟',day:2,time:'07:46',ts:base+466,silent:true});
+  post('okul',{from:'zeynep',text:'Deniz bugün gelmiyor mu?',day:2,time:'07:50',ts:base+470,silent:true});
+  post('okul',{from:'ali',text:'kuzeni ölmüş galiba',truth:'hastaneye kaldırılmış galiba',day:2,time:'07:52',ts:base+472,silent:true});
   addCall({who:'anne',kind:'missed',t:'Bugün 07:41'});
   lockNotifs([
     notifHTML('Emre','3 cevapsız sesli arama',AV.emre,{when:'03:14'}),
     notifHTML('Emre','🎤 Sesli mesaj ('+fmtDur(lineDur('emre_vm'))+')',AV.emre,{when:'03:15'}),
-    notifHTML('Aile 🏠','Babam: Emre\'yi kaybettik 😞 Başımız sağ olsun',AV.aile,{when:'07:20'}),
+    notifHTML('B Blok Sakinleri 🏢','Ayten Hanım D.6: Yukarı katlarda biri kapıları tek tek çalıyor…',AV.apt,{when:'03:16'}),
+    notifHTML('Kocaman Ailemiz ❤️','Babam: Emre\'yi kaybettik 😞 Başımız sağ olsun',AV.aile,{when:'07:20'}),
     notifHTML('Annem','Deniz uyandın mı? Ara beni',AV.anne,{when:'07:40'}),
+    notifHTML('Mert','kanka duydum.. başın sağ olsun 😔',AV.mert,{when:'07:46'}),
   ]);
   await interOut();
 }
 
 async function day2(){
+  // o gün yazılabilecekler (cevapsız kalırlar: tek gri tik)
+  CH.emre.free=[{t:'Emre?'},{t:'Bu nasıl şaka?'},{t:'Gece ne oldu?'}];
+  CH.anne.free=[{t:'Anne neredesiniz?'},{t:'Anne ben iyiyim, cevap ver'}];
+  CH.aile.free=[{t:'Ne oluyor? Kimse cevap vermiyor'}];
+  CH.mert.free=[{t:'Sağ ol kanka'}];
+  CH.kuzen.free=[{t:'Selin ne oldu?'}];
   await waitUnlock();
-  show('home'); await sleep(300); show('wa');
-  // Emre'nin sesli mesajı dinlenene (ya da 40 sn geçene) kadar bekle
+  show('home');
+  // Emre'nin sesli mesajı dinlenene ya da bir süre geçene kadar bekle
   const t0=performance.now();
-  await waitFor(()=>CH.emre.el.querySelector('.vm.played') || performance.now()-t0>45000*SPEED);
-  await sleep(6000);
-  await say('aile','anne',{type:'voice',vo:'anne_d2'});
+  await waitFor(()=>CH.emre.el.querySelector('.vm.played') || performance.now()-t0>70000*SPEED);
+  await sleep(7000);
+  await say('aile','anne',{type:'voice',vo:'anne_d2',lie:true});
   await say('aile','baba',{type:'text',text:'Cenaze yarın öğlen. Hepimiz Nermin\'lerde toplanıyoruz.',truth:'Doktorlar bekleyeceğiz diyor. Hepimiz hastanedeyiz.'});
+  await say('aile','dayi',{type:'text',text:'Hüseyin\'e ulaşamıyorum, telefonu kapalı',truth:'İçeri sadece bir kişi alıyorlarmış'});
+  await say('aile','yenge',{type:'text',text:'Başımız sağ olsun 😔 Nermin\'in yanına gidiyorum',truth:'Geçmiş olsun 😔 Sevgi\'nin yanına gidiyorum'});
+  await ghostType('aile','teyze',7000);
   await choose('aile',['Başımız sağ olsun… 😔','Ne oldu ona? Dün gece beni aramış']);
-  await say('aile','baba',{type:'text',text:'Doktor kalp krizi dedi. 24 yaşında çocuk…',truth:'Doktor "derin uyku" dedi. Uyanabilir de, uyanmayabilir de…'});
-  await sleep(1500);
+  await say('aile','baba',{type:'text',text:'Doktor kalp krizi dedi. 19 yaşında çocuk…',truth:'Doktor "derin uyku" dedi. Uyanabilir de, uyanmayabilir de…'});
+  await sleep(2500);
   await say('aile','babaanne',{type:'voice',vo:'babaanne_d2'});
+  await sleep(9000);
+  // Emre'nin sohbetinde bir an "yazıyor…"
+  CH.emre.sub='çevrimiçi'; if(S.chat==='emre') $('cSub').textContent='çevrimiçi';
+  await ghostType('emre','emre',5200);
+  CH.emre.sub='son görülme bugün 03:15'; if(S.chat==='emre') $('cSub').textContent=CH.emre.sub;
   await sleep(12000);
-  // e-Sıra bildirimi
-  const sira={raw:notifHTML('Sıranız değişti','Görüntülemek için dokunun.',AV.unknown,{red:true}),title:'e-Sıra',av:'unknown'};
-  sira.raw=`<div class="nt red"><span class="ntAv" style="display:grid;place-items:center;background:#c8102e;font-family:VT323;font-size:22px;color:#fff">47</span><div class="ntB"><div class="ntH"><span class="appdot">${svg('web')}</span>e-Sıra · şimdi</div><div class="ntT">Sıranız değişti</div><div class="ntX">Şu an işlem gören: 12 · Görüntülemek için dokunun.</div></div></div>`;
+  await waitCalm();
+  // e-Sıra bildirimi: oyuncu dokunana ya da uygulamayı açana kadar tekrar eder
+  const sira={raw:`<div class="nt red"><span class="ntAv" style="display:grid;place-items:center;background:#c8102e;font-family:VT323;font-size:22px;color:#fff">${SIRA_NO}</span><div class="ntB"><div class="ntH"><span class="appdot">${svg('web')}</span>e-Sıra · şimdi</div><div class="ntT">Sıranız değişti</div><div class="ntX">Görüntülemek için dokunun.</div></div></div>`};
   A.pop(); try{ navigator.vibrate&&navigator.vibrate([200,100,200]); }catch(e){}
   ambience('drone');
   HOME_APPS.push({id:'sira',label:'e-Sıra',cls:'ic-sira',txt:String(SIRA_NO),action:'sira',isNew:true}); renderHome();
-  await new Promise(r=>{ const again=()=>{ toast(sira,{},()=>{ clearInterval(iv); r(); }); }; again(); const iv=setInterval(()=>{ if(S.screen==='browser'){ clearInterval(iv); r(); } else again(); },9000); ACTIONS.sira=()=>{ clearInterval(iv); r(); }; });
+  await new Promise(r=>{ const again=()=>{ if(S.screen!=='call') toast(sira,{},()=>{ clearInterval(iv); r(); }); }; again(); const iv=setInterval(again,15000); ACTIONS.sira=()=>{ clearInterval(iv); r(); }; });
   ACTIONS.sira=()=>openSira();
   S.remain=24*3600-1; openSira();
   await sleep(600); await vo('sys_intro').done;
   S.remainRun=true;
   await new Promise(r=>siraResolve=r);
-  await sleep(5000);
+  await sleep(6000);
   // yüz fotoğrafının sonuçları
   CH.aile.avImg=S.face; post('aile',{type:'sys',from:'sys',text:'Emre bu grubun simgesini değiştirdi',truth:'Deniz bu grubun simgesini değiştirdi'}); A.glitch(.3);
   CH.bilinmeyen.hidden=false; CH.bilinmeyen.avImg=S.face;
   PHOTOS.unshift({img:S.face,who:'Galeri',when:'Bugün '+hhmm()});
-  await sleep(6000);
+  await sleep(7000);
+  CH.bilinmeyen.free=[
+    {t:'Kimsin sen?', on:()=>say('bilinmeyen','bilinmeyen','sıra sahibi',{gap:4000})},
+    {t:'Ne istiyorsun?', on:()=>say('bilinmeyen','bilinmeyen','sıranı',{gap:4000})},
+    {t:'Emre sen misin?', on:()=>say('bilinmeyen','bilinmeyen','12 geçti',{gap:6000})},
+  ];
   await say('bilinmeyen','bilinmeyen',{type:'image',src:S.face},{typing:1500});
   await say('bilinmeyen','bilinmeyen','sıra sahibi doğrulandı');
   await say('bilinmeyen','bilinmeyen','şu an işlem gören: 13');
   const t1=performance.now();
-  await waitFor(()=>S.chat==='bilinmeyen' || performance.now()-t1>30000*SPEED, 300);
-  await sleep(8000);
+  await waitFor(()=>S.chat==='bilinmeyen' || performance.now()-t1>40000*SPEED, 300);
+  await sleep(12000);
+  await waitCalm();
   await gamesPhase();
 }
 
 async function nightCall(){
-  await interlude('CUMA GECESİ','02:47',2600);
-  setClock(2,47);
-  show('home',false); await interOut();
-  await sleep(1500);
+  await waitCalm(30000);
+  stopAllVoices();
+  await interlude('CUMA GECESİ','02:47',3200);
+  setClock(2,47,3);
+  S.stack=[]; show('home',false); await interOut();
+  await sleep(6000);
+  await waitFor(()=>!outCall,300);
   let r=await incomingCall('anne');
-  if(r==='reject'){ addCall({who:'anne',kind:'missed',t:'Bugün 02:47'}); await sleep(2200); r=await incomingCall('anne');
-    if(r==='reject'){ addCall({who:'anne',kind:'missed',t:'Bugün 02:48'}); await sleep(1800); await incomingCall('anne',{rejectable:false}); } }
+  if(r==='reject'){ addCall({who:'anne',kind:'missed',t:'Bugün 02:47'}); await sleep(5000); r=await incomingCall('anne');
+    if(r==='reject'){ addCall({who:'anne',kind:'missed',t:'Bugün 02:48'}); await sleep(4000); await incomingCall('anne',{rejectable:false}); } }
   startTalk(); await sleep(1300);
   await line('call_1'); await line('call_2',{after:200});
   const cc=await callChoose(['Anne… sen evde değil misin?','Tamam, geliyorum.']);
@@ -1562,32 +1983,38 @@ async function nightCall(){
   A.glitch(.25); SFX.knock(0);
   await line('call_4',{after:500});
   endTalk(); addCall({who:'anne',kind:'in',t:'Bugün 02:49'});
-  await sleep(1500);
-  openChat('anne'); await sleep(1200);
+  await sleep(1500); back();
+  await sleep(5000);
   await say('anne','anne',{type:'text',text:'Deniz telefonla kiminle konuşuyorsun gece gece?',truth:'Deniz, hemşire telefonundan ses geliyor dedi.'});
   await say('anne','anne',{type:'text',text:'Ben odamdayım. Duvardan sesin geliyor.',truth:'Başındayım yavrum. Sesini duyuyorum sanki.'});
   const c3=await choose('anne',['Anne beni az önce SEN aradın','Kimseyle konuşmuyorum']);
   await say('anne','anne', c3===0 ? 'Ben seni aramadım yavrum. Telefonum şarjda.' : 'Duyuyorum ama. Biriyle konuşuyorsun.');
   await say('anne','anne',{type:'text',text:'Kapıyı kimseye açma.',truth:'Gözlerini aç.'});
-  await sleep(2400);
+  await sleep(6000);
   await say('bilinmeyen','bilinmeyen','şu an işlem gören: 46',{typing:900});
+  await sleep(4000);
   // geri sayım çöküyor
   A.glitch(.5); $('glitch').classList.add('on'); setTimeout(()=>$('glitch').classList.remove('on'),500);
   S.remain=12; S.remainRun=true;
-  toast({raw:`<div class="nt red"><span class="ntAv" style="display:grid;place-items:center;background:#c8102e;font-family:VT323;font-size:22px;color:#fff">47</span><div class="ntB"><div class="ntH"><span class="appdot">${svg('web')}</span>e-Sıra · şimdi</div><div class="ntT">Sıranız geldi</div><div class="ntX">Lütfen ayrılmayınız.</div></div></div>`},{},()=>openSira());
+  toast({raw:`<div class="nt red"><span class="ntAv" style="display:grid;place-items:center;background:#c8102e;font-family:VT323;font-size:22px;color:#fff">${SIRA_NO}</span><div class="ntB"><div class="ntH"><span class="appdot">${svg('web')}</span>e-Sıra · şimdi</div><div class="ntT">SIRANIZ GELDİ</div><div class="ntX">Lütfen bulunduğunuz yerden ayrılmayın.</div></div></div>`},{});
   await new Promise(r=>{ const iv=setInterval(()=>{
     if(S.remain<=10 && S.remain>0){ $('bigcd').classList.add('on'); $('bigcdN').textContent=S.remain; A.beat(.35+(10-S.remain)*.06); try{navigator.vibrate&&navigator.vibrate(80);}catch(e){} }
     if(S.remain<=0){ clearInterval(iv); $('bigcdN').textContent='0'; r(); }
   },1000*SPEED); });
   A.glitch(.6); $('device').classList.remove('shake'); $('glitch').classList.remove('on'); $('bigcd').classList.remove('on');
   S.remainRun=false;
+  if(S.screen==='call'||S.screen==='game') back();
   await finale();
 }
 
 async function story(){
   if(Q.has('sakla')){ history(); setClock(16,0,2); show('home'); await gameSakla(); show('home'); return; }
   if(Q.has('oyun')){ history(); setClock(16,0,2); ambience('drone'); show('home'); await gamesPhase(); await nightCall(); return; }
-  if(Q.has('final')){ history(); await night(); S.face=fakeFace(); setClock(2,58); show('home',false); await finale(); return; }
+  if(Q.has('final')){ history(); await night(); S.face=fakeFace();
+    post('aile',{from:'anne',type:'voice',vo:'anne_d2',lie:true,silent:true});
+    post('aile',{from:'baba',text:'Cenaze yarın öğlen. Hepimiz Nermin\'lerde toplanıyoruz.',truth:'Doktorlar bekleyeceğiz diyor. Hepimiz hastanedeyiz.',silent:true});
+    post('aile',{from:'me',text:'Başımız sağ olsun… 😔'}); post('emre',{from:'me',text:'Emre?'});
+    setClock(2,58,3); show('home',false); await finale(); return; }
   if(Q.has('gorev')){ history(); setClock(14,10,2); ambience('drone'); show('home'); S.remain=24*3600; S.remainRun=true; HOME_APPS.push({id:'sira',label:'e-Sıra',cls:'ic-sira',txt:String(SIRA_NO),action:'sira'}); renderHome(); openSira(); await new Promise(r=>siraResolve=r); S.face=S.face||fakeFace(); await gamesPhase(); await nightCall(); return; }
   if(!Q.has('gun2')){ await day1(); await night(); }
   else { history(); await night(); }

@@ -11,7 +11,7 @@
 <title>SIRA</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=VT323&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="oyun.css?v=9">
+<link rel="stylesheet" href="oyun.css?v=10">
 </head>
 <body>
 <div id="device">
@@ -42,14 +42,17 @@
 
     <!-- SOHBET: LİSTE -->
     <section id="wa" class="screen">
-      <div class="waTop"><h1>Sohbet</h1><span class="ic" data-i="camera"></span><span class="ic" data-i="more"></span></div>
+      <div class="waTop"><h1 id="waTitle">Sohbet</h1><span class="ic" data-i="camera" data-open="camera"></span><span class="ic" data-i="more"></span></div>
       <div class="waBody" id="waChats">
         <div class="waSearch"><span class="ic" data-i="search"></span><span>Ara</span></div>
         <div class="chips"><b class="on">Tümü</b><b>Okunmamış <i id="chipUn"></i></b><b>Favoriler</b><b>Gruplar</b></div>
-        <div class="waArch"><span class="ic" data-i="archive"></span><b>Arşivlenmiş</b><span>2</span></div>
+        <button class="waArch" id="waArch"><span class="ic" data-i="archive"></span><b>Arşivlenmiş</b><span id="archN">1</span></button>
+        <div id="archList" class="hidden"></div>
         <div id="clist"></div>
         <div class="waE2E"><span class="ic" data-i="lock"></span> Kişisel mesajlarınız <u>uçtan uca şifrelidir</u></div>
       </div>
+      <div class="waBody hidden" id="waUpd"></div>
+      <div class="waBody hidden" id="waComm"><div class="commE"><span class="ic" data-i="groups"></span><b>Topluluklar</b><p>Topluluklar, ilgili grupları tek bir yerde toplar. Henüz bir topluluğa katılmadın.</p></div></div>
       <div class="waBody hidden" id="waCalls">
         <div class="callsHead">Son aramalar</div>
         <div id="callList"></div>
@@ -72,7 +75,8 @@
         <span class="ic" data-i="video"></span><span class="ic" data-i="call"></span><span class="ic" data-i="more"></span>
       </div>
       <div id="msgWrap"></div>
-      <div id="replyPanel"><div class="rpT">Yanıtını seç</div><div id="rpList"></div></div>
+      <div id="replyPanel"><div class="rpT" id="rpT">Yanıtını seç</div><div id="rpList"></div></div>
+      <div id="kbSug"></div>
       <div class="inBar">
         <div class="field"><span class="ic" data-i="emoji"></span><span id="fieldTxt" class="ph">Mesaj</span><span class="ic" data-i="attach"></span><span class="ic" data-i="camera"></span></div>
         <button id="sendBtn"><span class="ic" data-i="mic" id="sendIc"></span></button>
@@ -95,13 +99,37 @@
 
     <!-- KAMERA UYGULAMASI -->
     <section id="camera" class="screen">
-      <p>Kamera başlatılamadı.<br><small>Kamera şu anda başka bir uygulama tarafından kullanılıyor.</small></p>
-      <button class="back txt" data-back>Geri dön</button>
+      <video id="camVid" playsinline muted></video>
+      <canvas id="camScare" width="360" height="640"></canvas>
+      <div class="camTop"><button class="back" data-back><span class="ic" data-i="close"></span></button><span id="camInfo">FOTOĞRAF</span></div>
+      <p id="camMsg"></p>
+      <div class="camBot"><button id="camLast"></button><button id="camShot"></button><span></span></div>
+    </section>
+
+    <!-- SAAT -->
+    <section id="clockApp" class="screen">
+      <div class="gHead"><button class="back" data-back><span class="ic" data-i="back"></span></button><b>Saat</b></div>
+      <div id="clkBody"></div>
+    </section>
+
+    <!-- AYARLAR -->
+    <section id="settings" class="screen">
+      <div class="gHead"><button class="back" data-back><span class="ic" data-i="back"></span></button><b>Ayarlar</b></div>
+      <div id="setBody"></div>
+    </section>
+
+    <!-- DURUM GÖRÜNTÜLEYİCİ -->
+    <section id="status" class="screen">
+      <div class="stBars"><i id="stFill"></i></div>
+      <div class="stHead"><button class="back" id="stBack"><span class="ic" data-i="back"></span></button><img id="stAv" alt=""><div><b id="stWho"></b><span id="stWhen"></span></div></div>
+      <div class="stStage"><img id="stImg" alt=""></div>
+      <div class="stCap" id="stCap"></div>
     </section>
 
     <!-- TELEFON UYGULAMASI -->
     <section id="phone" class="screen">
       <div class="gHead"><button class="back" data-back><span class="ic" data-i="back"></span></button><b>Telefon</b></div>
+      <div class="phTabs"><a data-ph="son" class="on">Son aramalar</a><a data-ph="kisi">Kişiler</a></div>
       <div id="phList"></div>
     </section>
 
@@ -139,6 +167,8 @@
       </div>
     </section>
   </div>
+
+  <div id="homeBar" title="Ana ekran"></div>
 
   <!-- 3D KONTROLLERİ -->
   <div id="hud3d">
@@ -180,6 +210,7 @@
     <small id="startNote">Bazı görevler kameranı kullanır. Görüntü cihazından çıkmaz.</small>
   </div>
 </div>
-<script type="module" src="oyun.js?v=9"></script>
+<div id="rotate"><span>📱</span><b>Telefonunu dik tut</b><small>SIRA dikey ekranda oynanır.</small></div>
+<script type="module" src="oyun.js?v=10"></script>
 </body>
 </html>
