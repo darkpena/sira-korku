@@ -169,8 +169,11 @@ async function loadAudio(){
     }));
   }catch(e){}
 }
+const ALOG=window.__alog=[];
+function alog(ev,id){ ALOG.push({ev,id,t:Math.round(performance.now()),rev:!!S.revealed,scr:S.screen}); if(ALOG.length>400) ALOG.shift(); }
 function playBuf(id,{gain=1,pan=0,rate=1,phone=false,loop=false,dur=0}={}){
   const c=A.ctx, b=BUF[id]; if(!c||!b) return null;
+  alog('play',id);
   const s=c.createBufferSource(); s.buffer=b; s.playbackRate.value=rate; s.loop=loop;
   let node=s;
   if(phone){
@@ -183,7 +186,8 @@ function playBuf(id,{gain=1,pan=0,rate=1,phone=false,loop=false,dur=0}={}){
   const p=c.createStereoPanner(); p.pan.value=pan; g.connect(p); p.connect(A.master);
   s.start();
   if(dur){ const t=c.currentTime; g.gain.setValueAtTime(gain,t+dur); g.gain.linearRampToValueAtTime(0.0001,t+dur+.6); s.stop(t+dur+.7); }
-  return {s,g,dur:b.duration/rate,stop(fade=0){ try{ if(fade){ const t=c.currentTime; g.gain.cancelScheduledValues(t); g.gain.setValueAtTime(g.gain.value,t); g.gain.linearRampToValueAtTime(0.0001,t+fade); s.stop(t+fade+.05); } else s.stop(); }catch(e){} }};
+  s.addEventListener('ended',()=>alog('end',id));
+  return {s,g,dur:b.duration/rate,stop(fade=0){ alog('stop',id); try{ if(fade){ const t=c.currentTime; g.gain.cancelScheduledValues(t); g.gain.setValueAtTime(g.gain.value,t); g.gain.linearRampToValueAtTime(0.0001,t+fade); s.stop(t+fade+.05); } else s.stop(); }catch(e){} }};
 }
 /* ortam sesi: normal atmosfer (ev, sabah) ↔ gerilim (uğultu) arasında yumuşak geçiş */
 const AMB={cur:null,name:null};
@@ -257,6 +261,7 @@ function vo(id,{phone=false,pan=0,onprog}={}){
       src.s.onended=()=>{ onprog&&onprog(1); res(); };
       tick();
     } else if(trVoice && SPEED>=1){
+      alog('tts',id);
       const u=new SpeechSynthesisUtterance(L.t); u.lang='tr-TR'; u.voice=trVoice; u.pitch=L.p||1; u.rate=L.r||.9; u.volume=L.vol||1;
       u.onend=()=>{ onprog&&onprog(1); res(); }; u.onerror=()=>res();
       speechSynthesis.cancel(); speechSynthesis.speak(u); tick();
@@ -1096,10 +1101,10 @@ function fakeFace(){ return cv(400,400,(g,w,h)=>{ g.fillStyle='#0b0c0e'; g.fillR
    ========================================================= */
 async function interlude(top,big,ms=2600){
   const e=$('inter'); $('inTop').textContent=top; $('inBig').textContent=big;
-  e.classList.add('on'); await new Promise(r=>setTimeout(r,40)); e.style.opacity=1;
+  e.style.pointerEvents='auto'; e.classList.add('on'); await new Promise(r=>setTimeout(r,40)); e.style.opacity=1;
   await sleep(ms);
 }
-async function interOut(){ const e=$('inter'); e.style.opacity=0; await sleep(1000); e.classList.remove('on'); }
+async function interOut(){ const e=$('inter'); e.style.pointerEvents='none'; e.style.opacity=0; await sleep(1000); e.classList.remove('on'); }
 function lockNotifs(list){ $('lkNotifs').innerHTML=list.join(''); }
 function waitUnlock(){ show('lock',false); S.stack=[]; return new Promise(r=>S.lockTap=()=>{ S.lockTap=null; r(); }); }
 function waitFor(fn,ms=200){ return new Promise(r=>{ const iv=setInterval(()=>{ if(fn()){ clearInterval(iv); r(); } },ms); }); }
@@ -1601,15 +1606,17 @@ async function finale(){
   A.pop(); try{ navigator.vibrate&&navigator.vibrate([150,80,150]); }catch(e){}
   finSet('e-Sıra · Sıranız geldi.','Gözlerini kapat.',hint);
   // A) gözlerin kapanmasını bekle
-  let cl=0, nf=0;
-  while(true){ await frame(); const s=sense();
-    if(s==='closed'){ cl+=.05; if(cl>.6) break; }
-    else { cl=0; if(s===null){ nf+=.05; $('finS').textContent = nf>20 ? 'Yüzünü göremiyorum. Parmağını ekrana basılı da tutabilirsin.' : 'Yüzünü göremiyorum.'; } else $('finS').textContent=hint; } }
+  let cl=0, nf=0, lt=performance.now();
+  const step=()=>{ const n=performance.now(), d=Math.min(.25,(n-lt)/1000); lt=n; return d; };
+  while(true){ await frame(); const s=sense(), dt=step();
+    if(s==='closed'){ cl+=dt; if(cl>.6) break; }
+    else { cl=0; if(s===null){ nf+=dt; $('finS').textContent = nf>20 ? 'Yüzünü göremiyorum. Parmağını ekrana basılı da tutabilirsin.' : 'Yüzünü göremiyorum.'; } else $('finS').textContent=hint; } }
   // B) gözler kapalı: dışarıdan sesler
   finSet('','',''); let t=0, op=0, opened=false; const fired=new Set();
   const ev=(at,fn)=>{ if(t>=at && !fired.has(at)){ fired.add(at); fn(); } };
-  while(true){ await frame(); const s=sense();
-    if(s==='closed'){ t+=.05; op=0; } else if(s==='open'){ op+=.05; if(op>.35){ opened=true; break; } }
+  lt=performance.now();
+  while(true){ await frame(); const s=sense(), dt=step();
+    if(s==='closed'){ t+=dt; op=0; } else if(s==='open'){ op+=dt; if(op>.35){ opened=true; break; } } else t+=dt*.5;
     ev(1,()=>{ MON.bpm=58; });
     ev(3,()=>vo('anne_3d',{pan:-.35}));
     ev(9,()=>SFX.sizzle());
