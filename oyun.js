@@ -1,4 +1,6 @@
-import * as THREE from 'three';
+/* three.js yalnızca Bekleme Salonu'na girerken yüklenir (eski Safari'de import map desteği yok) */
+let THREE=null;
+const loadThree=async()=>{ if(!THREE) THREE=await import('https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js'); return THREE; };
 
 /* =========================================================
    YARDIMCILAR
@@ -78,8 +80,15 @@ setInterval(()=>{ if(S.battery>4){ S.battery--; paintStatus(); } }, 50000*SPEED)
 const A = {
   ctx:null, master:null, nb:null,
   init(){
+    try{ if(navigator.audioSession) navigator.audioSession.type='playback'; }catch(e){}
+    try{ // iOS: medya kanalını açmak için kısa sessiz bir WAV çal (sessiz mod düğmesine rağmen ses gelsin)
+      const n=4410, b=new ArrayBuffer(44+n*2), v=new DataView(b), w=(o,t)=>{ for(let i=0;i<t.length;i++) v.setUint8(o+i,t.charCodeAt(i)); };
+      w(0,'RIFF'); v.setUint32(4,36+n*2,true); w(8,'WAVE'); w(12,'fmt '); v.setUint32(16,16,true); v.setUint16(20,1,true); v.setUint16(22,1,true); v.setUint32(24,44100,true); v.setUint32(28,88200,true); v.setUint16(32,2,true); v.setUint16(34,16,true); w(36,'data'); v.setUint32(40,n*2,true);
+      const u=new Audio(URL.createObjectURL(new Blob([b],{type:'audio/wav'}))); u.setAttribute('playsinline',''); const pr=u.play(); if(pr&&pr.catch) pr.catch(()=>{});
+    }catch(e){}
     if(this.ctx){ this.ctx.resume(); return; }
     const c=this.ctx=new (window.AudioContext||window.webkitAudioContext)();
+    if(c.state==='suspended') c.resume();
     this.master=c.createGain(); this.master.gain.value=.9;
     const comp=c.createDynamicsCompressor(); this.master.connect(comp); comp.connect(c.destination);
     const n=c.sampleRate*2; this.nb=c.createBuffer(1,n,c.sampleRate);
@@ -151,7 +160,7 @@ async function loadAudio(){
     const r = await fetch('ses/manifest.json',{cache:'no-store'}); if(!r.ok) return;
     const list = await r.json();
     await Promise.all(list.map(async id=>{
-      try{ const a=await fetch('ses/'+id+'.mp3'); if(!a.ok) return; BUF[id]=await A.ctx.decodeAudioData(await a.arrayBuffer()); MANIFEST.add(id); }catch(e){}
+      try{ const a=await fetch('ses/'+id+'.mp3'); if(!a.ok) return; const ab=await a.arrayBuffer(); BUF[id]=await new Promise((ok,no)=>{ const pr=A.ctx.decodeAudioData(ab,ok,no); if(pr&&pr.catch) pr.catch(no); }); MANIFEST.add(id); }catch(e){}
     }));
   }catch(e){}
 }
@@ -258,7 +267,7 @@ function vo(id,{phone=false,pan=0,onprog}={}){
    ========================================================= */
 function cv(w,h,draw){ const c=document.createElement('canvas'); c.width=w; c.height=h; draw(c.getContext('2d'),w,h); return c; }
 function grain(g,w,h,a=.12){ const d=g.getImageData(0,0,w,h); for(let i=0;i<d.data.length;i+=4){ const n=(Math.random()-.5)*255*a; d.data[i]+=n; d.data[i+1]+=n; d.data[i+2]+=n; } g.putImageData(d,0,0); }
-function avatar(c1,c2,emoji,{size=160,fs=86}={}){ return cv(size,size,(g,w,h)=>{ const gr=g.createLinearGradient(0,0,w,h); gr.addColorStop(0,c1); gr.addColorStop(1,c2); g.fillStyle=gr; g.fillRect(0,0,w,h); g.font=`${fs}px serif`; g.textAlign='center'; g.textBaseline='middle'; g.fillText(emoji,w/2,h/2+6); }).toDataURL(); }
+function avatar(c1,c2,emoji,{size=160,fs=86}={}){ return cv(size,size,(g,w,h)=>{ const gr=g.createLinearGradient(0,0,w,h); gr.addColorStop(0,c1); gr.addColorStop(1,c2); g.fillStyle=gr; g.fillRect(0,0,w,h); g.font=`${fs}px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif`; g.textAlign='center'; g.textBaseline='middle'; g.fillText(emoji,w/2,h/2+6); }).toDataURL(); }
 const AV = {
   aile: avatar('#2f6b55','#173a2d','🏠'),
   anne: avatar('#f4c4d4','#c9708f','👩🏻'),
@@ -266,16 +275,16 @@ const AV = {
   emre: avatar('#36d1dc','#1d4f8f','⚽'),
   babaanne: avatar('#efe2c8','#a48c62','👵🏻'),
   okul: avatar('#ffd36e','#e08a2c','📚'),
-  teyze: cv(160,160,(g,w,h)=>{ const gr=g.createRadialGradient(80,80,10,80,80,110); gr.addColorStop(0,'#ffe3ee'); gr.addColorStop(1,'#d9467a'); g.fillStyle=gr; g.fillRect(0,0,w,h); g.font='54px serif'; g.textAlign='center'; g.textBaseline='middle'; [['🌹',50,52],['🌸',112,48],['🌹',80,100],['🌷',40,118],['🌹',122,116]].forEach(([e,x,y])=>g.fillText(e,x,y)); }).toDataURL(),
+  teyze: cv(160,160,(g,w,h)=>{ const gr=g.createRadialGradient(80,80,10,80,80,110); gr.addColorStop(0,'#ffe3ee'); gr.addColorStop(1,'#d9467a'); g.fillStyle=gr; g.fillRect(0,0,w,h); g.font='54px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; g.textAlign='center'; g.textBaseline='middle'; [['🌹',50,52],['🌸',112,48],['🌹',80,100],['🌷',40,118],['🌹',122,116]].forEach(([e,x,y])=>g.fillText(e,x,y)); }).toDataURL(),
   unknown: cv(160,160,(g,w,h)=>{ g.fillStyle='#6a7175'; g.fillRect(0,0,w,h); g.fillStyle='#cfd4d6'; g.beginPath(); g.arc(80,62,30,0,7); g.fill(); g.beginPath(); g.ellipse(80,150,58,48,0,Math.PI,0); g.fill(); }).toDataURL(),
 };
 const IMG = {
-  gunaydin: cv(360,360,(g,w,h)=>{ const gr=g.createLinearGradient(0,0,w,h); gr.addColorStop(0,'#ffd1e8'); gr.addColorStop(1,'#ff8fb8'); g.fillStyle=gr; g.fillRect(0,0,w,h); g.font='60px serif'; g.textAlign='center'; ['🌹','🌸','🌹','🌷','🌹'].forEach((e,i)=>g.fillText(e,40+i*70,86+(i%2)*18)); ['🌷','🌹','🌸','🌹','🌸'].forEach((e,i)=>g.fillText(e,40+i*70,330-(i%2)*14)); g.fillStyle='#a1003b'; g.font='italic bold 56px Georgia'; g.fillText('Günaydın',w/2,192); g.font='italic 23px Georgia'; g.fillStyle='#6d0028'; g.fillText('Hayırlı perşembeler ✨',w/2,234); }).toDataURL(),
+  gunaydin: cv(360,360,(g,w,h)=>{ const gr=g.createLinearGradient(0,0,w,h); gr.addColorStop(0,'#ffd1e8'); gr.addColorStop(1,'#ff8fb8'); g.fillStyle=gr; g.fillRect(0,0,w,h); g.font='60px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; g.textAlign='center'; ['🌹','🌸','🌹','🌷','🌹'].forEach((e,i)=>g.fillText(e,40+i*70,86+(i%2)*18)); ['🌷','🌹','🌸','🌹','🌸'].forEach((e,i)=>g.fillText(e,40+i*70,330-(i%2)*14)); g.fillStyle='#a1003b'; g.font='italic bold 56px Georgia'; g.fillText('Günaydın',w/2,192); g.font='italic 23px Georgia'; g.fillStyle='#6d0028'; g.fillText('Hayırlı perşembeler ✨',w/2,234); }).toDataURL(),
   linkThumb: cv(500,260,(g,w,h)=>{ const gr=g.createLinearGradient(0,0,0,h); gr.addColorStop(0,'#1d3b2a'); gr.addColorStop(1,'#0b1a12'); g.fillStyle=gr; g.fillRect(0,0,w,h); g.strokeStyle='rgba(212,175,95,.55)'; g.lineWidth=3; for(let i=0;i<8;i++){ g.beginPath(); g.arc(w/2,h/2,30+i*22,0,7); g.stroke(); } g.fillStyle='#e9d39a'; g.font='italic 46px Georgia'; g.textAlign='center'; g.fillText('Cuma Duası',w/2,h/2+4); g.font='18px Georgia'; g.fillStyle='#bfa96d'; g.fillText('🤲  okuyan ömrünü görür  🤲',w/2,h/2+40); }).toDataURL(),
-  ekmek: cv(300,300,(g,w,h)=>{ g.fillStyle='#4b2e1c'; g.fillRect(0,0,w,h); g.font='150px serif'; g.textAlign='center'; g.fillText('🥖',w/2,200); }).toDataURL(),
-  mac: cv(300,300,(g,w,h)=>{ g.fillStyle='#1e5c2b'; g.fillRect(0,0,w,h); g.strokeStyle='rgba(255,255,255,.4)'; g.lineWidth=3; g.strokeRect(20,20,260,260); g.beginPath(); g.arc(150,150,40,0,7); g.stroke(); g.font='70px serif'; g.textAlign='center'; g.fillText('⚽',150,175); }).toDataURL(),
+  ekmek: cv(300,300,(g,w,h)=>{ g.fillStyle='#4b2e1c'; g.fillRect(0,0,w,h); g.font='150px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; g.textAlign='center'; g.fillText('🥖',w/2,200); }).toDataURL(),
+  mac: cv(300,300,(g,w,h)=>{ g.fillStyle='#1e5c2b'; g.fillRect(0,0,w,h); g.strokeStyle='rgba(255,255,255,.4)'; g.lineWidth=3; g.strokeRect(20,20,260,260); g.beginPath(); g.arc(150,150,40,0,7); g.stroke(); g.font='70px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; g.textAlign='center'; g.fillText('⚽',150,175); }).toDataURL(),
   deniz: cv(300,300,(g,w,h)=>{ const gr=g.createLinearGradient(0,0,0,h); gr.addColorStop(0,'#8fd3ff'); gr.addColorStop(.55,'#2f86c9'); gr.addColorStop(.56,'#1f5f8f'); gr.addColorStop(1,'#e8d29a'); g.fillStyle=gr; g.fillRect(0,0,w,h); }).toDataURL(),
-  kedi: cv(300,300,(g,w,h)=>{ const gr=g.createLinearGradient(0,0,0,h); gr.addColorStop(0,'#c98f4d'); gr.addColorStop(1,'#6b4426'); g.fillStyle=gr; g.fillRect(0,0,w,h); g.font='150px serif'; g.textAlign='center'; g.fillText('🐈',w/2,210); }).toDataURL(),
+  kedi: cv(300,300,(g,w,h)=>{ const gr=g.createLinearGradient(0,0,0,h); gr.addColorStop(0,'#c98f4d'); gr.addColorStop(1,'#6b4426'); g.fillStyle=gr; g.fillRect(0,0,w,h); g.font='150px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; g.textAlign='center'; g.fillText('🐈',w/2,210); }).toDataURL(),
 };
 function siraCard(no,txt,sub){ return cv(360,420,(g,w,h)=>{ g.fillStyle='#f6efe0'; g.fillRect(0,0,w,h); g.strokeStyle='#d8c08a'; g.lineWidth=6; g.strokeRect(10,10,w-20,h-20); g.fillStyle='#7a5a1c'; g.font='italic 30px Georgia'; g.textAlign='center'; g.fillText('Cuma Duası',w/2,66); g.font='14px Georgia'; g.fillStyle='#9b8a68'; g.fillText('Kalan ömrünüz',w/2,130); g.fillStyle='#8b0f1f'; g.font='110px VT323, monospace'; g.fillText(txt,w/2,240); g.fillStyle='#7a5a1c'; g.font='22px Georgia'; g.fillText(sub,w/2,282); g.fillStyle='#b5a27c'; g.font='13px Georgia'; g.fillText('Sıra no: '+no+'   ·   e-sira.app',w/2,370); }).toDataURL(); }
 IMG.emreShot = siraCard('12','1','gün');
@@ -1070,12 +1079,12 @@ async function nightCall(){
   await sleep(700);
   $('device').classList.remove('shake'); $('glitch').classList.remove('on'); $('bigcd').classList.remove('on');
   S.remainRun=false;
-  enter3D();
+  await enter3D();
   await sleep(400); $('white').style.transition='opacity 2.5s'; $('white').style.opacity=0;
 }
 
 async function story(){
-  if(Q.has('3d')){ history(); S.day=2; enter3D(); return; }
+  if(Q.has('3d')){ history(); S.day=2; await enter3D(); return; }
   if(Q.has('gorev')){ history(); setClock(14,10,2); ambience('drone'); show('home'); S.remain=24*3600; S.remainRun=true; HOME_APPS.push({id:'sira',label:'e-Sıra',cls:'ic-sira',txt:'47',action:'sira'}); renderHome(); openSira(); await new Promise(r=>siraResolve=r); S.face=S.face||fakeFace(); await nightCall(); return; }
   if(!Q.has('gun2')){ await day1(); await night(); }
   else { history(); await night(); }
@@ -1105,7 +1114,8 @@ function makeFigure(coat, standing, faceless=false){
   else { torso.position.y=.79; hp.position.y=1.26; box(.11,.11,.46,dark,-.08,.5,-.2); box(.11,.11,.46,dark,.08,.5,-.2); box(.1,.46,.11,dark,-.08,.24,-.42); box(.1,.46,.11,dark,.08,.24,-.42); box(.07,.07,.34,coatMat,-.2,.64,-.12); box(.07,.07,.34,coatMat,.2,.64,-.12); }
   g.add(torso); g.add(hp); g.userData.head=hp; return g;
 }
-function enter3D(){
+async function enter3D(){
+  await loadThree(); tmpQ=new THREE.Quaternion(); fwd=new THREE.Vector3(); tv=new THREE.Vector3();
   S.mode='3d'; S.frozen=true; S.min=2*60+47;
   $('screens').style.display='none'; $('three').style.display='block'; $('hud3d').classList.add('on');
   $('sb').style.color='#f3edd2';
@@ -1187,7 +1197,7 @@ hud.addEventListener('pointerup',endPtr); hud.addEventListener('pointercancel',e
 function openPhone3d(){ S.phoneOpen=true; $('screens').style.display='block'; }
 function closePhone3d(){ S.phoneOpen=false; S.chat=null; $('screens').style.display='none'; }
 $('phoneBtn').onclick=()=>{ const c=Object.values(CH).filter(c=>!c.hidden).sort((a,b)=>b.lastTs-a.lastTs)[0]; openChat(CH.aile.unread?'aile':c.id); };
-const tmpQ=new THREE.Quaternion(), fwd=new THREE.Vector3(), tv=new THREE.Vector3();
+let tmpQ, fwd, tv;
 function blocked(x,z){ for(const c of R.colliders) if(x>c.x0-.25&&x<c.x1+.25&&z>c.z0-.25&&z<c.z1+.25) return true; return false; }
 function loop3D(now){
   if(!R||!R.running) return; requestAnimationFrame(loop3D);
@@ -1284,7 +1294,7 @@ $('startBtn').onclick=async()=>{
   A.init();
   if('speechSynthesis' in window){ loadVoices(); const u=new SpeechSynthesisUtterance(' '); u.volume=0; speechSynthesis.speak(u); }
   $('startBtn').textContent='YÜKLENİYOR…';
-  await loadAudio();
+  await Promise.race([loadAudio(), new Promise(r=>setTimeout(r,6000))]);
   document.querySelectorAll('.vm').forEach(()=>{});
   $('overlay').classList.add('off');
   story();
