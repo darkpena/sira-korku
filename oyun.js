@@ -319,6 +319,8 @@ const CH = {
   baba:{title:'Babam', av:'baba', sub:'son görülme bugün 21:02'},
   okul:{title:'Sınıf 12-B 📚', av:'okul', group:true, sub:'Ali, Zeynep, +28 kişi', muted:true},
   bilinmeyen:{title:'+90 5•• ••• •• 47', av:'unknown', sub:'çevrimiçi', hidden:true},
+  teyze:{title:'Nermin Teyze', av:'teyze', sub:'son görülme bugün 01:12', hidden:true},
+  babaanne:{title:'Babaanne', av:'babaanne', sub:'son görülme dün 21:40', hidden:true},
 };
 const wrap=$('msgWrap');
 for(const id in CH){ const c=CH[id]; c.id=id; c.el=document.createElement('div'); c.el.className='msgs'; wrap.appendChild(c.el); c.unread=0; c.lastTs=0; c.last=''; c.prev=null; c.lastDay=null; c.typing=null; c.pending=null; c.list=[]; }
@@ -360,7 +362,7 @@ function renderMsg(c,m){
   let inner='';
   if(!out && c.group) row.innerHTML=`<img class="mav" src="${AV[PEOPLE[m.from].av]}">`;
   const nm = (!out && c.group && first && m.type!=='voice') ? `<div class="nm" style="color:${PEOPLE[m.from].color}">${esc(PEOPLE[m.from].name)}</div>` : '';
-  const ticks = out ? (m.flipped ? `<span class="tk one">${svg('ticks')}</span>` : m.day>=2 ? `<span class="tk one">${svg('tick1')}</span>` : `<span class="tk">${svg('ticks')}</span>`) : '';
+  const ticks = out ? (m.flipped||m.delivered ? `<span class="tk one">${svg('ticks')}</span>` : m.day>=2 ? `<span class="tk one">${svg('tick1')}</span>` : `<span class="tk">${svg('ticks')}</span>`) : '';
   const meta = `<span class="meta">${m.time}${ticks}</span>`;
   let cls='bub';
   if(m.type==='text'||!m.type){
@@ -563,7 +565,7 @@ function addCall(c){ CALLS.unshift(c); if(c.kind==='missed'){ S.missedCalls=(S.m
 const PHOTOS=[ {img:IMG.ekmek,when:'Dün'}, {img:IMG.mac,when:'10 Kasım'}, {img:IMG.deniz,when:'Ağustos'}, {img:IMG.kedi,when:'Temmuz'} ];
 function renderGallery(){
   $('gGrid').innerHTML='';
-  PHOTOS.forEach(p=>{ const d=document.createElement('div'); d.className='gi'; d.innerHTML=`<img src="${p.thumb||p.img}">${p.video?`<span>${svg('video')}0:14</span>`:''}`; d.onclick=()=>openViewer({img:p.video?null:p.img, video:p.video, who:p.who||'Galeri', when:p.when}); $('gGrid').appendChild(d); });
+  PHOTOS.forEach(p=>{ const d=document.createElement('div'); d.className='gi'; d.innerHTML=`<img src="${p.thumb||p.img}">${p.video?`<span>${svg('video')}0:10</span>`:''}`; d.onclick=()=>openViewer({img:p.video?null:p.img, video:p.video, who:p.who||'Galeri', when:p.when}); $('gGrid').appendChild(d); });
 }
 
 /* ---------- medya görüntüleyici / video oynatıcı ---------- */
@@ -1058,7 +1060,7 @@ const EV=[
 "#B...#........#",
 "#B...#..SSS...#",
 "#....#.......P#",
-"#..W.#........#",
+"#W...#........#",
 "###.###.#######",
 "D.............#",
 "#.............#",
@@ -1070,11 +1072,10 @@ const EV=[
 async function gameSakla(){
   const T=20, W=15, H=13;
   const c=gameShell('SAKLAMBAÇ','EBE: ANNEM'); c.width=W*T; c.height=H*T; const g=c.getContext('2d');
-  const anneImg=await loadImg('img/anne.jpg');
   const tile=(x,y)=>(EV[y]||'')[x]||'#';
   const HIDE='WPK', walk=(x,y)=>'.D'.includes(tile(x,y));
   const rooms=[['DENİZ',1,1],['SALON',9,1],['KORİDOR',9,6],['ANNEMİN ODASI',1,9],['MUTFAK',5,9],['BANYO',10,9]];
-  let me={x:8,y:7}, an={x:6,y:10}, hidden=false, hideAt=null, over=false, path=[], visits=0, msgT=0, moveDir=null;
+  let me={x:8,y:7}, an={x:5,y:10}, hidden=false, hideAt=null, over=false, path=[], msgT=0, moveDir=null, sitting=false;
   const bfs=(sx,sy,tx,ty,toHide=false)=>{
     const K=(x,y)=>y*W+x, prev=new Map([[K(sx,sy),null]]), q=[[sx,sy]];
     while(q.length){ const [x,y]=q.shift(); if(x===tx&&y===ty) break;
@@ -1101,10 +1102,11 @@ async function gameSakla(){
     g.fillStyle='#c9b8a6'; g.beginPath(); g.arc(T+T/2,T+T/2,5,0,7); g.fill(); g.fillStyle='#3a4560'; g.fillRect(T+4,T+T-2,T-8,T+2);
     g.fillStyle='rgba(255,255,255,.33)'; g.font='9px Roboto, sans-serif'; g.textAlign='left'; rooms.forEach(([n,x,y])=>g.fillText(n,x*T+2,y*T+9));
     // annem
-    g.fillStyle='#0b0b0f'; g.fillRect(an.x*T+4,an.y*T+7,T-8,T-7); g.fillStyle='#d8ccc0'; g.beginPath(); g.arc(an.x*T+T/2,an.y*T+6,5,0,7); g.fill();
-    g.fillStyle='#000'; g.fillRect(an.x*T+T/2-3,an.y*T+5,2,2); g.fillRect(an.x*T+T/2+1,an.y*T+5,2,2);
+    const ax=an.x*T-(sitting?7:0), ay=an.y*T+(sitting?3:0);
+    g.fillStyle='#0b0b0f'; g.fillRect(ax+4,ay+7,T-8,T-(sitting?10:7)); g.fillStyle='#d8ccc0'; g.beginPath(); g.arc(ax+T/2,ay+6,5,0,7); g.fill();
+    g.fillStyle='#000'; if(sitting){ g.fillRect(ax+T/2-4,ay+5,2,2); g.fillRect(ax+T/2-1,ay+5,2,2); } else { g.fillRect(ax+T/2-3,ay+5,2,2); g.fillRect(ax+T/2+1,ay+5,2,2); }
     if(!hidden){ g.fillStyle='#f2f2f2'; g.fillRect(me.x*T+6,me.y*T+8,T-12,T-9); g.fillStyle='#ffd7b5'; g.beginPath(); g.arc(me.x*T+T/2,me.y*T+6,4,0,7); g.fill(); }
-    else { const cx=hideAt.x*T+T/2, cy=hideAt.y*T+T/2, gr=g.createRadialGradient(cx,cy,8,cx,cy,95); gr.addColorStop(0,'rgba(0,0,0,0)'); gr.addColorStop(1,'rgba(0,0,0,.95)'); g.fillStyle=gr; g.fillRect(0,0,W*T,H*T); }
+    else if(!sitting){ const cx=hideAt.x*T+T/2, cy=hideAt.y*T+T/2, gr=g.createRadialGradient(cx,cy,8,cx,cy,95); gr.addColorStop(0,'rgba(0,0,0,0)'); gr.addColorStop(1,'rgba(0,0,0,.95)'); g.fillStyle=gr; g.fillRect(0,0,W*T,H*T); }
   };
   const nearHide=()=>{ for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]) if(HIDE.includes(tile(me.x+dx,me.y+dy))) return {x:me.x+dx,y:me.y+dy}; return null; };
   const pd=dpad((dx,dy,down)=>{ moveDir = down && !hidden && !over ? [dx,dy] : null; if(moveDir) stepMe(); },'SAKLAN');
@@ -1113,7 +1115,7 @@ async function gameSakla(){
   function stepMe(){
     if(!moveDir||hidden||over) return;
     const nx=me.x+moveDir[0], ny=me.y+moveDir[1];
-    if(walk(nx,ny) && !(nx===an.x&&ny===an.y)){ me={x:nx,y:ny}; A.noise(.03,{type:'lowpass',f:300,gain:.05}); }
+    if(walk(nx,ny)){ me={x:nx,y:ny}; A.noise(.03,{type:'lowpass',f:300,gain:.05}); }
     if(me.x<=2 && me.y<=4 && Date.now()-msgT>5000){ msgT=Date.now(); gmMsg('Yatakta biri yatıyor. Nefes almıyor.'); }
     hideBtn.disabled=!nearHide();
   }
@@ -1125,30 +1127,31 @@ async function gameSakla(){
   return new Promise(async resolve=>{
     for(let i=10;i>0;i--){ $('gmInfo').textContent='ANNEM SAYIYOR: '+i; A.tone(330,.05,{gain:.05}); await sleep(1000); }
     $('gmInfo').textContent='ANNEM ARIYOR'; gmMsg('');
-    if(!playBuf('call_3a',{gain:1,pan:-.3})) vo('call_3a');
-    const targets=[{x:9,y:3},{x:2,y:3},{x:2,y:10},{x:11,y:10},{x:7,y:7}];
-    let ti=0; path=bfs(an.x,an.y,targets[0].x,targets[0].y);
+    if(!playBuf('call_1',{gain:.9,pan:-.3})) vo('call_1');
+    const targets=[{x:9,y:3},{x:2,y:10},{x:11,y:10},{x:7,y:7},{x:12,y:3}];
+    let ti=0, phase='search', seenT=0, wait=0; path=bfs(an.x,an.y,targets[0].x,targets[0].y);
     const tick=setInterval(async()=>{
       if(over) return;
-      if(!path.length){ visits++;
-        if(visits===2) playBuf('call_1',{gain:1,pan:Math.max(-1,Math.min(1,(an.x-me.x)/8))});
-        if(visits>=2 && hidden) path=bfs(an.x,an.y,hideAt.x,hideAt.y,true);
-        else if(visits>=2) path=bfs(an.x,an.y,me.x,me.y);
-        else { ti=(ti+1)%targets.length; path=bfs(an.x,an.y,targets[ti].x,targets[ti].y); } }
+      if(wait>0){ wait--; return; }
+      if(!path.length){
+        if(phase==='search'){ ti++; wait=5;
+          if(ti===2) playBuf('call_1',{gain:.6,pan:Math.max(-1,Math.min(1,(an.x-me.x)/8)),rate:.92});
+          if(ti<targets.length) path=bfs(an.x,an.y,targets[ti].x,targets[ti].y);
+          else { phase='bed'; path=bfs(an.x,an.y,2,2); } }
+        else if(phase==='bed'){
+          over=true; clearInterval(tick); clearInterval(moveTimer); moveDir=null; sitting=true; hideBtn.disabled=true;
+          await sleep(1400); gmMsg('Annem yatağın kenarına oturdu.'); await sleep(3000);
+          gmMsg('“Uyan yavrum.”'); playBuf('anne_3d',{gain:.45,phone:true,dur:2.6}); await sleep(3800);
+          gmMsg('Annem seni bulamadı.'); await sleep(4200);
+          alive=false; keyDir=null; resolve(); return; }
+      }
       const n=path.shift(); if(n) an=n;
       const ref=hidden?hideAt:me, dist=Math.abs(an.x-ref.x)+Math.abs(an.y-ref.y);
       A.noise(.09,{type:'lowpass',f:220,gain:Math.max(.02,.3-dist*.02),pan:Math.max(-1,Math.min(1,(an.x-ref.x)/7))});
-      if((!hidden && dist<=2) || (hidden && an.x===hideAt.x && an.y===hideAt.y) || (an.x===me.x&&an.y===me.y)){
-        over=true; alive=false; clearInterval(tick); clearInterval(moveTimer);
-        const p=document.createElement('canvas'); p.width=p.height=24; const pp=p.getContext('2d');
-        if(anneImg){ const w=anneImg.naturalWidth, side=w*.6; pp.drawImage(anneImg,(w-side)/2,w*.06,side,side,0,0,24,24); }
-        g.imageSmoothingEnabled=false; g.drawImage(p,0,0,W*T,H*T); g.imageSmoothingEnabled=true;
-        g.fillStyle='rgba(0,0,0,.55)'; g.fillRect(0,0,W*T,H*T);
-        g.fillStyle='#000'; g.fillRect(W*T*.3,H*T*.34,W*T*.14,H*T*.11); g.fillRect(W*T*.56,H*T*.34,W*T*.14,H*T*.11);
-        SFX.stinger(); $('device').classList.add('shake'); try{ navigator.vibrate&&navigator.vibrate([80,40,250]); }catch(e){}
-        setTimeout(()=>$('device').classList.remove('shake'),450);
-        gmMsg('Bulundun.'); $('gmInfo').textContent='EBE: ANNEM';
-        await sleep(3200); keyDir=null; resolve(); }
+      if(!hidden && Date.now()-seenT>5000){
+        if(an.x===me.x&&an.y===me.y){ seenT=Date.now(); A.glitch(.1); gmMsg('Annem içinden geçti.'); }
+        else if(dist<=2){ seenT=Date.now(); gmMsg('Annem seni görmüyor.'); }
+      }
     },420);
   });
 }
@@ -1187,15 +1190,20 @@ async function scrambleTo(el,txt){
   for(let f=1;f<=14;f++){ let o=''; for(let i=0;i<L;i++) o += i < (f/14)*L ? (txt[i]||'') : (Math.random()<.6 ? chars[Math.floor(Math.random()*chars.length)] : (old[i]||'')); el.textContent=o; if(f%3===0) A.key(); await new Promise(r=>setTimeout(r,55)); }
   el.textContent=txt;
 }
-async function reveal(){
-  ambience('drone');
-  openChat('aile'); CH.aile.el.querySelector('.undiv')?.remove(); await sleep(1400); SFX.whispers(0,3);
-  for(const m of CH.aile.list.filter(m=>m.truth)){
+async function morphChat(cid){
+  const list=CH[cid].list.filter(m=>m.truth && m.text!==m.truth); if(!list.length) return;
+  openChat(cid); CH[cid].el.querySelector('.undiv')?.remove(); await sleep(1300);
+  for(const m of list){
     m.el.scrollIntoView({block:'center',behavior:'smooth'}); await sleep(600);
     const tx=m.el.querySelector('.tx')||m.el; A.glitch(.15); await scrambleTo(tx,m.truth); m.text=m.truth; await sleep(900);
   }
-  await sleep(1000);
-  // Emre sohbeti: "gelen" mesajlar aslında senin gönderdiklerin
+  await sleep(900);
+}
+async function reveal(){
+  ambience('drone'); SFX.whispers(0,3);
+  // 1) yas mesajları: hepsi Deniz hakkındaydı
+  await morphChat('aile');
+  // 2) Emre sohbeti: "gelen" mesajlar aslında senin gönderdiklerin
   openChat('emre'); await sleep(1400);
   const c=CH.emre; c.el.querySelector('.undiv')?.remove();
   for(const m of c.list.filter(m=>m.flip)){
@@ -1204,30 +1212,49 @@ async function reveal(){
     c.prev=null; const row=renderMsg(c,nm); row.classList.add('flipping'); m.el.replaceWith(row); m.el=row; A.glitch(.12); await sleep(520);
   }
   c.sub='çevrimiçi'; $('cSub').textContent='çevrimiçi';
-  await sleep(1500);
-  if(CH.anne.list.some(m=>m.truth)){
-    openChat('anne'); await sleep(1000);
-    for(const m of CH.anne.list.filter(m=>m.truth)){ m.el.scrollIntoView({block:'center'}); const tx=m.el.querySelector('.tx'); if(tx){ await scrambleTo(tx,m.truth); await sleep(600); } }
-    await sleep(1200);
+  const ph=PHOTOS.find(p=>p.video==='emre'); if(ph) ph.who='Siz';
+  await sleep(1600);
+  // 3) arama kaydı: Emre seni aramadı, sen onu aradın
+  const ce=CALLS.find(x=>x.who==='emre'&&x.kind==='missed');
+  if(ce){
+    back('wa'); show('wa'); document.querySelector('.waNav a[data-tab="calls"]').click(); await sleep(1500);
+    const i=CALLS.indexOf(ce); $('callList').children[i]?.classList.add('flipping'); A.glitch(.2);
+    ce.kind='out'; await sleep(300); renderCalls(); $('callList').children[i]?.classList.add('flipping'); await sleep(2200);
+    document.querySelector('.waNav a[data-tab="chats"]').click(); await sleep(600);
+  }
+  // 4) annenin mesajları
+  await morphChat('anne');
+  // 5) Deniz'in hiç iletilmeyen mesajları bir anda iletiliyor
+  const pend=[]; for(const id in CH) for(const m of CH[id].list) if(m.from==='me' && m.day>=2 && !m.flipped && !m.delivered && m.type!=='sys') pend.push(m);
+  if(pend.length){
+    openChat('aile'); await sleep(1200);
+    for(const m of pend){ m.delivered=true; const tk=m.el.querySelector('.tk'); if(tk) tk.innerHTML=svg('ticks'); A.tone(1400,.03,{gain:.05}); await sleep(160); }
+    await sleep(1500);
+    await say('aile','baba','Deniz\'in telefonundan mesajlar geldi?!');
+    await say('aile','anne','Hepsi şimdi düştü. Dünden beri yazdıkları…');
+    await say('aile','emre','Telefon bende. Elimde. Kimse bir şey yazmadı.',{after:2200});
   }
 }
-async function emreAlive(){
+const LINK_DENIZ={type:'link',url:'https://e-sira.app/omur-testi?ref=deniz',title:'Ömür Testi ⏳ Ne kadar ömrün kaldı?',desc:'Doğum tarihini gir, kalan ömrünü öğren. %98 doğru çıkıyor 😱',domain:'e-sira.app'};
+async function takerAlive(k,fm){
+  const T=fm?fm.time:'03:11', link={...LINK_DENIZ,thumb:IMG.linkThumb};
+  const L = !fm ? ['Gece beni 3 kere aramış, video atmış. Uyuyordum, görmedim 😔','Son açtığı şey annemin attığı link.',link,'Ben de açtım.','Bende de 1 gün yazıyor.']
+    : {emre:[`Bana da Deniz'den bir link gelmiş. Saat ${T}.`,'O saatte telefonu benim cebimdeydi 😳',link,'Açtım.','1 gün yazıyor.'],
+       anne:[`Deniz'den bana bir link geldi. Saat ${T}.`,'O saatte başındaydım. Gözleri kapalıydı.',link,'Açtım.','Bende 1 gün yazıyor.'],
+       baba:[`Deniz'in numarasından bana bir link gelmiş, ${T}'de.`,'Telefonu Emre\'deydi o saatte.',link,'Açtım, bakayım dedim.','1 gün yazıyor.'],
+       teyze:['Benim attığım link bana geri geldi 😳',`Deniz'in numarasından, saat ${T}.`,link,'Açtım yine.','Bu sefer 1 gün yazıyor.'],
+       babaanne:['Deniz bana bir şey göndermiş yavrum.',`Saat ${T}. Ben uyuyordum.`,link,'Torunum açtı bana.','Bir gün yazıyor. Sıra bende demek.']}[k];
   openChat('aile'); await sleep(900);
-  await say('aile','emre','Deniz\'in telefonu bende.');
-  await say('aile','emre','Gece beni 3 kere aramış, video atmış. Uyuyordum, görmedim 😔');
-  await say('aile','emre','Son açtığı şey annemin attığı link.');
-  await say('aile','emre',{type:'link',url:'https://e-sira.app/omur-testi?ref=deniz',title:'Ömür Testi ⏳ Ne kadar ömrün kaldı?',desc:'Doğum tarihini gir, kalan ömrünü öğren. %98 doğru çıkıyor 😱',domain:'e-sira.app',thumb:IMG.linkThumb});
-  await say('aile','emre','Ben de açtım.');
-  await say('aile','emre','Bende de 1 gün yazıyor.',{after:2000});
+  for(let i=0;i<L.length;i++) await say('aile',k,L[i], i===L.length-1?{after:2200}:{});
   SFX.chime();
-  toast({raw:`<div class="nt red"><span class="ntAv" style="display:grid;place-items:center;background:#c8102e;font-family:VT323;font-size:22px;color:#fff">${SIRA_NO+1}</span><div class="ntB"><div class="ntH"><span class="appdot">${svg('web')}</span>e-Sıra · şimdi</div><div class="ntT">Yeni kayıt: Emre</div><div class="ntX">Sıra numarası ${SIRA_NO+1} · Kalan süre: 23:59:59</div></div></div>`},{});
+  toast({raw:`<div class="nt red"><span class="ntAv" style="display:grid;place-items:center;background:#c8102e;font-family:VT323;font-size:22px;color:#fff">${SIRA_NO+1}</span><div class="ntB"><div class="ntH"><span class="appdot">${svg('web')}</span>e-Sıra · şimdi</div><div class="ntT">Yeni kayıt: ${esc(PEOPLE[k].name)}</div><div class="ntX">Sıra numarası ${SIRA_NO+1} · Kalan süre: 23:59:59</div></div></div>`},{});
   await sleep(4500);
 }
-function finalScreen(title,text){
+function finalScreen(title,text,taker){
   const o=$('overlay'), next=SIRA_NO+2, url=location.origin+location.pathname+'?sira='+next;
   o.innerHTML=`<h2>${title}</h2><p>${text}</p>
     <div class="shareBox"><b>SIRADAKİ NUMARA: ${next}</b>
-      <p>${SIRA_NO+1} numarayı Emre aldı.<br>Bu oyunu bir yakınına gönderirsen ${next} numara onun olur.</p>
+      <p>${SIRA_NO+1} numarayı ${esc(taker)} aldı.<br>Bu oyunu bir yakınına gönderirsen ${next} numara onun olur.</p>
       <button class="big" id="devret">SIRAMI DEVRET</button>
       <button class="ghostBtn" id="devretme">Devretme</button>
       <small id="devretNot"></small></div>
@@ -1241,6 +1268,131 @@ function finalScreen(title,text){
   $('devretme').onclick=()=>{ $('devretNot').textContent='Sıran seni bekliyor.'; A.glitch(.3); };
   $('again').onclick=()=>location.href=location.pathname;
   o.classList.remove('off'); o.style.opacity=0; o.style.transition='opacity 2s'; requestAnimationFrame(()=>o.style.opacity=1);
+}
+
+/* =========================================================
+   SON SAHNE: yoğun bakım (gişe yerine)
+   ========================================================= */
+const MON={on:false,flat:false,bpm:64,t:null,br:null,beatAt:-1e9};
+function monStart(bpm=64){
+  MON.on=true; MON.flat=false; MON.bpm=bpm;
+  const tick=()=>{ if(!MON.on||MON.flat) return; A.tone(988,.11,{gain:.08}); MON.beatAt=performance.now(); $('finBpm').textContent='♥ '+MON.bpm; MON.t=setTimeout(tick,60000/MON.bpm*(.94+Math.random()*.12)); };
+  tick();
+  const breath=()=>A.noise(1.5,{type:'lowpass',f:420,gain:.035,a:.6}); breath(); MON.br=setInterval(breath,4300);
+}
+function monFlat(){ MON.flat=true; clearTimeout(MON.t); $('finBpm').textContent='---'; A.tone(988,4.6,{gain:.07,a:.02}); }
+function monStop(){ MON.on=false; clearTimeout(MON.t); clearInterval(MON.br); }
+const ECG={raf:0,x:0,last:0,prevY:null};
+function ecgStart(){
+  const c=$('finEcg'), g=c.getContext('2d'), H=c.height, base=H*.62; g.clearRect(0,0,c.width,H); ECG.x=0; ECG.prevY=null; ECG.last=performance.now();
+  const val=now=>{ if(MON.flat||!MON.on) return 0; const d=now-MON.beatAt; if(d<0||d>420) return 0; if(d<40) return -.12; if(d<80) return 1; if(d<115) return -.35; if(d<160) return 0; if(d<340) return .18*Math.sin((d-160)/180*Math.PI); return 0; };
+  const step=now=>{
+    const dt=Math.min(50,now-ECG.last); ECG.last=now; const nx=ECG.x+dt*.09, y=base-val(now)*H*.5;
+    g.clearRect(nx,0,18,H);
+    g.strokeStyle='#3fe07a'; g.lineWidth=2; g.shadowColor='#3fe07a'; g.shadowBlur=6;
+    g.beginPath(); g.moveTo(ECG.x,ECG.prevY??y); g.lineTo(nx,y); g.stroke();
+    ECG.prevY=y; ECG.x=nx; if(ECG.x>c.width){ ECG.x=0; ECG.prevY=null; }
+    ECG.raf=requestAnimationFrame(step);
+  };
+  ECG.raf=requestAnimationFrame(step);
+}
+function ecgStop(){ cancelAnimationFrame(ECG.raf); }
+function finSet(top,t,s=''){ $('finTop').textContent=top; $('finT').textContent=t; $('finS').textContent=s; }
+function detectV(v){ if(!FL||!v||!v.videoWidth) return null; try{ return FL.detectForVideo(v,performance.now()); }catch(e){ return null; } }
+function camOff(){ camStop(); if(gameVid){ gameVid.pause(); gameVid.srcObject=null; } }
+function backToPhone(){ S.mode='phone'; S.phoneOpen=false; S.frozen=false; $('form').classList.remove('on'); $('screens').style.display='block'; $('sb').style.color=''; paintStatus(); }
+function whiteTo(color,op,ms){ const w=$('white'); w.style.background=color; w.style.transition=`opacity ${ms}ms`; w.style.opacity=op; return sleep(ms); }
+
+function forwardPicker(){
+  return new Promise(res=>{
+    const box=$('finFwd'), who=['emre','anne','baba','teyze','babaanne']; let sel=null;
+    box.innerHTML=`<div class="fwH"><span class="ic">${svg('close')}</span><div><b>Şuraya ilet…</b><small>Ömür Testi ⏳ bağlantısı</small></div></div>
+      <div class="fwSec">Son sohbetler</div>
+      <div class="fwList">${who.map(k=>`<button class="fwRow" data-k="${k}"><img src="${AV[PEOPLE[k].av]}" alt=""><b>${esc(PEOPLE[k].name)}</b><i></i></button>`).join('')}</div>
+      <div class="fwBot"><button class="fwNo">Gönderme</button><span id="fwSel"></span><button class="fwGo" disabled>${svg('send')}</button></div>`;
+    box.classList.add('on');
+    box.querySelectorAll('.fwRow').forEach(r=>r.onclick=()=>{ sel=r.dataset.k; box.querySelectorAll('.fwRow').forEach(x=>x.classList.toggle('on',x===r)); box.querySelector('.fwGo').disabled=false; $('fwSel').textContent=PEOPLE[sel].name; A.key(); });
+    box.querySelector('.fwGo').onclick=()=>{ if(!sel) return; A.send(); box.classList.remove('on'); res(sel); };
+    box.querySelector('.fwNo').onclick=()=>{ box.classList.remove('on'); res(null); };
+  });
+}
+
+async function finale(){
+  const f=$('fin'); finSet('','',''); f.classList.add('on');
+  $('bigcd').classList.remove('on'); $('device').classList.remove('shake'); $('glitch').classList.remove('on');
+  S.remainRun=false; ambience(null);
+  await sleep(3500);
+  monStart(64); ecgStart();
+  await sleep(6000);
+  finSet('','Bir makine ötüyor.'); await sleep(4500);
+  finSet('',''); await sleep(2000);
+  // kamera ya da basılı tutma
+  const vid=await gameCam();
+  const fl=vid ? await Promise.race([loadFace(), new Promise(r=>setTimeout(()=>r(null),8000))]) : null;
+  let held=false;
+  f.onpointerdown=()=>{ held=true; }; f.onpointerup=f.onpointercancel=()=>{ held=false; };
+  const sense=()=>{ if(held) return 'closed'; if(fl){ const b=blinkOf(detectV(vid)); if(b==null) return null; return b>.45?'closed':'open'; } return 'open'; };
+  const frame=()=>new Promise(r=>setTimeout(r,50));
+  const hint = fl ? 'Telefonu yüzüne doğru tut.' : 'Parmağını ekrana bas ve basılı tut.';
+  A.pop(); try{ navigator.vibrate&&navigator.vibrate([150,80,150]); }catch(e){}
+  finSet('e-Sıra · Sıranız geldi.','Gözlerini kapat.',hint);
+  // A) gözlerin kapanmasını bekle
+  let cl=0, nf=0;
+  while(true){ await frame(); const s=sense();
+    if(s==='closed'){ cl+=.05; if(cl>.6) break; }
+    else { cl=0; if(s===null){ nf+=.05; $('finS').textContent = nf>20 ? 'Yüzünü göremiyorum. Parmağını ekrana basılı da tutabilirsin.' : 'Yüzünü göremiyorum.'; } else $('finS').textContent=hint; } }
+  // B) gözler kapalı: dışarıdan sesler
+  finSet('','',''); let t=0, op=0, opened=false; const fired=new Set();
+  const ev=(at,fn)=>{ if(t>=at && !fired.has(at)){ fired.add(at); fn(); } };
+  while(true){ await frame(); const s=sense();
+    if(s==='closed'){ t+=.05; op=0; } else if(s==='open'){ op+=.05; if(op>.35){ opened=true; break; } }
+    ev(1,()=>{ MON.bpm=58; });
+    ev(3,()=>vo('anne_3d',{pan:-.35}));
+    ev(9,()=>SFX.sizzle());
+    ev(10.5,()=>vo('babaanne_kursun',{pan:.35}));
+    ev(17,()=>{ MON.bpm=46; vo('emre_whisper',{pan:-.7}); });
+    ev(21,()=>{ MON.bpm=34; });
+    ev(23.5,()=>{ MON.bpm=22; });
+    if(t>=26) break;
+  }
+  f.onpointerdown=f.onpointerup=f.onpointercancel=null;
+  if(opened){
+    curVO?.stop(); MON.bpm=112; $('finBpm').textContent='♥ 112';
+    await whiteTo('#fff',.92,250); await whiteTo('#fff',0,2500);
+    finSet('','Gözlerin açık.'); await sleep(3000);
+    A.pop(); finSet('e-Sıra · şimdi','Sıra boş kalamaz.'); await sleep(3000);
+    finSet('e-Sıra · şimdi','Uyanmak istiyorsan sıranı birine devret.'); await sleep(3500);
+    const k=await forwardPicker();
+    if(k){ const fm={from:'me',...LINK_DENIZ,thumb:IMG.linkThumb,silent:true}; post(k,fm); return endDevir(k,fm); }
+    finSet('','Gözlerin kapanıyor.'); MON.bpm=40; await sleep(3500); MON.bpm=24; await sleep(3500);
+  }
+  return endKabul();
+}
+async function endKabul(){
+  monFlat(); finSet('','',''); await sleep(5000);
+  monStop(); ecgStop(); await whiteTo('#000',1,800);
+  $('fin').classList.remove('on'); camOff(); backToPhone(); show('home',false); setClock(6,12);
+  await sleep(2000); await whiteTo('#000',0,2000);
+  await reveal();
+  openChat('aile'); await sleep(800);
+  await say('aile','anne','Deniz…');
+  await say('aile','anne','Deniz\'i kaybettik.',{after:1800});
+  sys('aile','Deniz gruptan çıktı',true); A.glitch(.3); await sleep(2600);
+  await takerAlive('emre',null);
+  finalScreen('SON: KABUL','Gözlerini açmadın. Sıran tamamlandı.<br>O gece Emre seni hiç aramadı; arayan sendin.<br>Ama link hâlâ dolaşıyor.','Emre');
+}
+async function endDevir(k,fm){
+  MON.bpm=96; finSet('','Uyanıyorsun.'); await sleep(2500);
+  await whiteTo('#fff',1,2000); monStop(); ecgStop(); SFX.sizzle();
+  $('fin').classList.remove('on'); camOff(); backToPhone(); show('home',false); setClock(6,12);
+  await sleep(1800); await whiteTo('#fff',0,2500);
+  await reveal();
+  openChat('aile'); await sleep(800);
+  await say('aile','anne','Deniz gözlerini açtı!! 😭');
+  await say('aile','babaanne','Kurşun tuttu yavrum. Döndün.');
+  await say('aile','baba','Oh be! Yaşıyor 😭',{after:2400});
+  await takerAlive(k,fm);
+  finalScreen('SON: DEVİR','Uyandın. Sıranı '+esc(PEOPLE[k].name)+' aldı.<br>Linki ona sen gönderdin; o sırada telefonun Emre\'nin cebindeydi.<br>Ama link hâlâ dolaşıyor.',PEOPLE[k].name);
 }
 
 /* =========================================================
@@ -1427,20 +1579,15 @@ async function nightCall(){
     if(S.remain<=10 && S.remain>0){ $('bigcd').classList.add('on'); $('bigcdN').textContent=S.remain; A.beat(.35+(10-S.remain)*.06); try{navigator.vibrate&&navigator.vibrate(80);}catch(e){} }
     if(S.remain<=0){ clearInterval(iv); $('bigcdN').textContent='0'; r(); }
   },1000*SPEED); });
-  $('device').classList.add('shake'); $('glitch').classList.add('on');
-  SFX.chime(); await vo('anons').done;
-  A.glitch(.6); $('white').style.transition='opacity .2s'; $('white').style.opacity=1;
-  await sleep(700);
-  $('device').classList.remove('shake'); $('glitch').classList.remove('on'); $('bigcd').classList.remove('on');
+  A.glitch(.6); $('device').classList.remove('shake'); $('glitch').classList.remove('on'); $('bigcd').classList.remove('on');
   S.remainRun=false;
-  await enter3D();
-  await sleep(400); $('white').style.transition='opacity 2.5s'; $('white').style.opacity=0;
+  await finale();
 }
 
 async function story(){
-  if(Q.has('3d')){ history(); S.day=2; await enter3D(); return; }
+  if(Q.has('sakla')){ history(); setClock(16,0,2); show('home'); await gameSakla(); show('home'); return; }
   if(Q.has('oyun')){ history(); setClock(16,0,2); ambience('drone'); show('home'); await gamesPhase(); await nightCall(); return; }
-  if(Q.has('final')){ history(); await night(); S.face=fakeFace(); await reveal(); await emreAlive(); finalScreen('SON: TEST','Final testi.'); return; }
+  if(Q.has('final')){ history(); await night(); S.face=fakeFace(); setClock(2,58); show('home',false); await finale(); return; }
   if(Q.has('gorev')){ history(); setClock(14,10,2); ambience('drone'); show('home'); S.remain=24*3600; S.remainRun=true; HOME_APPS.push({id:'sira',label:'e-Sıra',cls:'ic-sira',txt:String(SIRA_NO),action:'sira'}); renderHome(); openSira(); await new Promise(r=>siraResolve=r); S.face=S.face||fakeFace(); await gamesPhase(); await nightCall(); return; }
   if(!Q.has('gun2')){ await day1(); await night(); }
   else { history(); await night(); }
@@ -1603,45 +1750,6 @@ async function level0Script(){
   await sleep(8000); say('aile','baba','Ambulansı aradım, 10 dakikaya gelecekler');
   await sleep(14000); if(R.loop===0) sub3d('Gişelere doğru yürü.',3500);
   await sleep(150000); if(R && !R.giseOn){ R.loop=3; setNumber(SIRA_NO-1); loopEvents(3); }
-}
-
-/* =========================================================
-   GİŞE VE SONLAR
-   ========================================================= */
-let formOpen=false;
-$('actBtn').onclick=async()=>{ formOpen=true; $('actBtn').classList.remove('on'); sub3d('Memur: “'+LINES.memur_1.t+'”',4000); await vo('memur_1').done; showForm(); };
-function showForm(){
-  const f=$('fbox');
-  f.innerHTML=`<h3>BEKLEME SALONU</h3><div class="fs">GİŞE 0 · SIRA NO ${String(SIRA_NO).padStart(3,'0')} · DENİZ</div><div style="font-size:13px;margin-bottom:6px">Yapmak istediğiniz işlemi seçiniz:</div><button id="fDevir">▸ Sıramı devretmek istiyorum (Madde 14)</button><button id="fKabul">▸ Sıramı kabul ediyorum</button><div class="stampMark" id="stamp">İŞLEM TAMAM</div>`;
-  $('form').classList.add('on'); $('fKabul').onclick=()=>endingKabul();
-  $('fDevir').onclick=()=>{ f.innerHTML=`<h3>SIRA DEVRİ</h3><div class="fs">Devralan kişinin rızası aranmaz.</div>${['anne','baba','teyze','babaanne','bilinmeyen'].map(k=>`<button data-k="${k}">▸ ${PEOPLE[k].name}</button>`).join('')}<div class="stampMark" id="stamp">DEVREDİLDİ</div>`; f.querySelectorAll('[data-k]').forEach(b=>b.onclick=()=>endingDevir(b.dataset.k)); };
-}
-async function stampIt(){ await sleep(400); SFX.stamp(); $('stamp').classList.add('on'); $('device').classList.add('shake'); await sleep(160); $('device').classList.remove('shake'); await sleep(1600); }
-function back2phone(){ R.running=false; A.humOff(); $('form').classList.remove('on'); $('three').style.display='none'; $('hud3d').classList.remove('on'); S.mode='phone'; S.phoneOpen=false; S.frozen=false; S.min=2*60+52; $('sb').style.color=''; $('screens').style.display='block'; paintStatus(); }
-async function endingKabul(){
-  await stampIt(); $('white').style.transition='opacity .1s'; $('white').style.background='#000'; $('white').style.opacity=1;
-  await vo('memur_kabul').done; await sleep(1500);
-  back2phone(); $('white').style.transition='opacity 2s'; $('white').style.opacity=0;
-  await reveal();
-  openChat('aile'); await sleep(700);
-  await say('aile','anne','Deniz…');
-  await say('aile','anne','Deniz\'i kaybettik.',{after:1600});
-  sys('aile','Deniz gruptan çıktı',true); A.glitch(.3); await sleep(2200);
-  await emreAlive();
-  finalScreen('SON: KABUL','Sıranı bekledin ve işlemin tamamlandı.<br>O gece kapıyı çalan sesi duyan sendin.<br>Emre seni hiç aramadı; arayan sendin.');
-}
-async function endingDevir(k){
-  if(k==='bilinmeyen'){ $('fbox').innerHTML=`<h3>İŞLEM YAPILAMADI</h3><div class="fs">Bu kişinin sırası zaten gelmiştir.</div><div style="font-size:13px;line-height:1.5">Kayıtlı sıra no: <b>001</b><br>Kayıt tarihi: <b>—</b><br>Bu kişi uygulamayı ilk gönderen kişidir.</div><button id="fBack">▸ Geri</button>`; A.glitch(.4); vo('memur_bilinmeyen'); $('fBack').onclick=showForm; return; }
-  await stampIt(); $('white').style.transition='opacity .1s'; $('white').style.background='#fff'; $('white').style.opacity=1; SFX.sizzle(); await sleep(2200);
-  back2phone(); $('white').style.transition='opacity 2.5s'; $('white').style.opacity=0;
-  await reveal();
-  openChat('aile'); await sleep(700);
-  await say('aile','anne','Deniz gözlerini açtı!! 😭');
-  await say('aile','babaanne','Kurşun tuttu yavrum. Döndün.');
-  await say('aile','baba','Oh be! Yaşıyor 😭',{after:1600});
-  sys('aile',PEOPLE[k].name+' gruptan çıktı',true); A.glitch(.3); await sleep(2200);
-  await emreAlive();
-  finalScreen('SON: DEVİR','Uyandın. Sıranı '+PEOPLE[k].name+' aldı; rızası aranmadı.<br>Ama link hâlâ dolaşıyor.');
 }
 
 /* =========================================================
